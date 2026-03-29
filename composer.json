@@ -1,0 +1,48 @@
+{
+    "name": "blockshiftnetwork/composio-laravel",
+    "description": "Laravel integration for Composio with PrismPHP and Laravel AI tool support",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "blockshiftnetwork/composio-php": "dev-main",
+        "echolabsdev/prism": "^0.100",
+        "guzzlehttp/guzzle": "^7.0",
+        "illuminate/support": "^11.0|^12.0|^13.0",
+        "laravel/ai": "^0.4"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "phpunit/phpunit": "^11.0",
+        "mockery/mockery": "^1.6"
+    },
+    "suggest": {
+        "echolabsdev/prism": "Required for PrismPHP tool conversion (^0.100)",
+        "laravel/ai": "Required for Laravel AI tool conversion (^0.4)"
+    },
+    "autoload": {
+        "psr-4": {
+            "BlockshiftNetwork\\ComposioLaravel\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BlockshiftNetwork\\ComposioLaravel\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BlockshiftNetwork\\ComposioLaravel\\ComposioServiceProvider"
+            ],
+            "aliases": {
+                "Composio": "BlockshiftNetwork\\ComposioLaravel\\Facades\\Composio"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
