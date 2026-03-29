@@ -39,7 +39,7 @@ Then install whichever AI framework you want to use (or both):
 
 ```bash
 # For PrismPHP
-composer require echolabsdev/prism
+composer require prism-php/prism
 
 # For Laravel AI
 composer require laravel/ai

@@ -173,7 +173,7 @@ class ComposioToolSet
     {
         if ($this->prismConverter === null) {
             throw new ComposioException(
-                'PrismPHP is not available. Install it with: composer require echolabsdev/prism'
+                'PrismPHP is not available. Install it with: composer require prism-php/prism'
             );
         }
     }
