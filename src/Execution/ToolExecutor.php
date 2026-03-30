@@ -11,8 +11,8 @@ use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
 class ToolExecutor
 {
     public function __construct(
-        private ToolsApi $toolsApi,
-        private HookManager $hooks,
+        private readonly ToolsApi $toolsApi,
+        private readonly HookManager $hooks,
     ) {}
 
     public function execute(

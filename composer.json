@@ -12,9 +12,10 @@
         "laravel/ai": "^0.4"
     },
     "require-dev": {
+        "mockery/mockery": "^1.6",
         "orchestra/testbench": "^9.0|^10.0",
         "phpunit/phpunit": "^11.0",
-        "mockery/mockery": "^1.6"
+        "rector/rector": "^2.3"
     },
     "suggest": {
         "prism-php/prism": "Required for PrismPHP tool conversion (^0.99|^0.100)",
@@ -39,6 +40,11 @@
                 "Composio": "BlockshiftNetwork\\ComposioLaravel\\Facades\\Composio"
             }
         }
+    },
+    "scripts": {
+        "rector": "rector process",
+        "rector:dry-run": "rector process --dry-run",
+        "test": "phpunit"
     },
     "config": {
         "sort-packages": true

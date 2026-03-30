@@ -9,8 +9,8 @@ use Prism\Prism\Tool;
 class PrismToolConverter implements ToolConverterInterface
 {
     public function __construct(
-        private SchemaMapper $schemaMapper,
-        private ToolExecutor $executor,
+        private readonly SchemaMapper $schemaMapper,
+        private readonly ToolExecutor $executor,
     ) {}
 
     public function convert(
@@ -26,21 +26,14 @@ class PrismToolConverter implements ToolConverterInterface
             ->for($composioTool->getDescription());
 
         $inputParams = $composioTool->getInputParameters();
-        if (is_array($inputParams) && ! empty($inputParams)) {
+        if (is_array($inputParams) && $inputParams !== []) {
             $tool = $this->schemaMapper->applySchema($tool, $inputParams);
         }
 
         $executor = $this->executor;
-        $tool = $tool->using(function () use ($executor, $slug, $userId, $entityId, $connectedAccountId) {
+        $tool = $tool->using(function () use ($executor, $slug, $userId, $entityId, $connectedAccountId): string {
             $arguments = func_get_args();
-
-            // PrismPHP passes named arguments as key-value pairs
-            $namedArgs = [];
-            if (count($arguments) === 1 && is_array($arguments[0])) {
-                $namedArgs = $arguments[0];
-            } else {
-                $namedArgs = $arguments;
-            }
+            $namedArgs = count($arguments) === 1 && is_array($arguments[0]) ? $arguments[0] : $arguments;
 
             $result = $executor->execute($slug, $namedArgs, $userId, $entityId, $connectedAccountId);
 

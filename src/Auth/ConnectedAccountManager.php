@@ -10,7 +10,7 @@ use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 class ConnectedAccountManager
 {
     public function __construct(
-        private ConnectedAccountsApi $api,
+        private readonly ConnectedAccountsApi $api,
     ) {}
 
     public function list(
@@ -23,9 +23,9 @@ class ConnectedAccountManager
         $response = $this->api->getConnectedAccounts(
             toolkit_slugs: $toolkitSlugs,
             statuses: $statuses,
-            user_ids: $userIds,
-            limit: $limit,
             cursor: $cursor,
+            limit: $limit,
+            user_ids: $userIds,
         );
 
         if ($response instanceof Error) {

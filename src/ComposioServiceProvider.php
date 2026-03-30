@@ -18,27 +18,21 @@ class ComposioServiceProvider extends ServiceProvider
             'default_entity_id' => env('COMPOSIO_DEFAULT_ENTITY_ID'),
         ], $this->app['config']->get('services.composio', [])));
 
-        $this->app->singleton(Configuration::class, function () {
-            return Configuration::getDefaultConfiguration()
-                ->setApiKey('x-api-key', config('services.composio.api_key'))
-                ->setHost(config('services.composio.base_url'));
-        });
+        $this->app->singleton(Configuration::class, fn() => Configuration::getDefaultConfiguration()
+            ->setApiKey('x-api-key', config('services.composio.api_key'))
+            ->setHost(config('services.composio.base_url')));
 
-        $this->app->singleton(ComposioManager::class, function ($app) {
-            return new ComposioManager(
-                $app->make(Configuration::class),
-                $app->bound(ClientInterface::class)
-                    ? $app->make(ClientInterface::class)
-                    : new Client,
-            );
-        });
+        $this->app->singleton(ComposioManager::class, fn($app): \BlockshiftNetwork\ComposioLaravel\ComposioManager => new ComposioManager(
+            $app->make(Configuration::class),
+            $app->bound(ClientInterface::class)
+                ? $app->make(ClientInterface::class)
+                : new Client,
+        ));
 
-        $this->app->bind(ComposioToolSet::class, function ($app) {
-            return $app->make(ComposioManager::class)->toolSet(
-                config('services.composio.default_user_id'),
-                config('services.composio.default_entity_id'),
-            );
-        });
+        $this->app->bind(ComposioToolSet::class, fn($app) => $app->make(ComposioManager::class)->toolSet(
+            config('services.composio.default_user_id'),
+            config('services.composio.default_entity_id'),
+        ));
     }
 
     public function boot(): void

@@ -9,8 +9,8 @@ use BlockshiftNetwork\ComposioLaravel\LaravelAi\ComposioTool;
 class LaravelAiToolConverter implements ToolConverterInterface
 {
     public function __construct(
-        private LaravelAiSchemaMapper $schemaMapper,
-        private ToolExecutor $executor,
+        private readonly LaravelAiSchemaMapper $schemaMapper,
+        private readonly ToolExecutor $executor,
     ) {}
 
     public function convert(

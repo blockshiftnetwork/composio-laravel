@@ -7,7 +7,7 @@ use BlockshiftNetwork\Composio\Model\PostToolsExecuteByToolSlug200Response;
 class ExecutionResult
 {
     public function __construct(
-        private PostToolsExecuteByToolSlug200Response $response,
+        private readonly PostToolsExecuteByToolSlug200Response $response,
     ) {}
 
     public function isSuccessful(): bool

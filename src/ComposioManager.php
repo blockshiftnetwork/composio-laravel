@@ -23,8 +23,8 @@ class ComposioManager
     private ?AuthConfigManager $authConfigManager = null;
 
     public function __construct(
-        private Configuration $config,
-        private ClientInterface $httpClient,
+        private readonly Configuration $config,
+        private readonly ClientInterface $httpClient,
     ) {}
 
     public function toolSet(?string $userId = null, ?string $entityId = null): ComposioToolSet

@@ -40,7 +40,7 @@ class ComposioToolSet
         $composioTools = $this->fetchTools($toolkitSlug, $toolSlugs, $tags, $search);
 
         return array_map(
-            fn (ComposioTool $tool) => $this->prismConverter->convert(
+            fn (ComposioTool $tool): \Prism\Prism\Tool => $this->prismConverter->convert(
                 $tool, $this->userId, $this->entityId, $this->connectedAccountId,
             ),
             $composioTools,
@@ -70,7 +70,7 @@ class ComposioToolSet
         $composioTools = $this->fetchTools($toolkitSlug, $toolSlugs, $tags, $search);
 
         return array_map(
-            fn (ComposioTool $tool) => $this->laravelAiConverter->convert(
+            fn (ComposioTool $tool): \BlockshiftNetwork\ComposioLaravel\LaravelAi\ComposioTool => $this->laravelAiConverter->convert(
                 $tool, $this->userId, $this->entityId, $this->connectedAccountId,
             ),
             $composioTools,

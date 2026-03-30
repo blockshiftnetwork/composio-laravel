@@ -10,7 +10,7 @@ use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 class AuthConfigManager
 {
     public function __construct(
-        private AuthConfigsApi $api,
+        private readonly AuthConfigsApi $api,
     ) {}
 
     public function list(

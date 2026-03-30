@@ -12,12 +12,12 @@ use Laravel\Ai\Tools\Request;
 class ComposioTool implements Tool
 {
     public function __construct(
-        private ComposioToolModel $composioTool,
-        private LaravelAiSchemaMapper $schemaMapper,
-        private ToolExecutor $executor,
-        private ?string $userId = null,
-        private ?string $entityId = null,
-        private ?string $connectedAccountId = null,
+        private readonly ComposioToolModel $composioTool,
+        private readonly LaravelAiSchemaMapper $schemaMapper,
+        private readonly ToolExecutor $executor,
+        private readonly ?string $userId = null,
+        private readonly ?string $entityId = null,
+        private readonly ?string $connectedAccountId = null,
     ) {}
 
     public function description(): string
@@ -29,7 +29,7 @@ class ComposioTool implements Tool
     {
         $inputParams = $this->composioTool->getInputParameters();
 
-        if (! is_array($inputParams) || empty($inputParams)) {
+        if (! is_array($inputParams) || $inputParams === []) {
             return [];
         }
 

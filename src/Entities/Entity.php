@@ -9,8 +9,8 @@ use BlockshiftNetwork\ComposioLaravel\ComposioToolSet;
 class Entity
 {
     public function __construct(
-        private ComposioManager $manager,
-        private string $userId,
+        private readonly ComposioManager $manager,
+        private readonly string $userId,
     ) {}
 
     public function toolSet(): ComposioToolSet
