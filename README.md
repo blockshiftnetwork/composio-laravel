@@ -47,27 +47,21 @@ composer require laravel/ai
 
 ## Configuration
 
-Publish the config file:
-
-```bash
-php artisan vendor:publish --tag=composio-config
-```
-
 Add your API key to `.env`:
 
 ```env
 COMPOSIO_API_KEY=your-composio-api-key
 ```
 
-The full config file (`config/composio.php`):
+The package reads from `config/services.php` under the `composio` key. Defaults are provided via environment variables, so no config publishing is needed. To override values explicitly, add to your `config/services.php`:
 
 ```php
-return [
+'composio' => [
     'api_key'           => env('COMPOSIO_API_KEY'),
     'base_url'          => env('COMPOSIO_BASE_URL', 'https://backend.composio.dev'),
     'default_user_id'   => env('COMPOSIO_DEFAULT_USER_ID'),
     'default_entity_id' => env('COMPOSIO_DEFAULT_ENTITY_ID'),
-];
+],
 ```
 
 ---
@@ -501,7 +495,7 @@ $tools = $toolSet->getTools(toolkitSlug: 'github');
 
 ```
 src/
-  ComposioServiceProvider.php    # Registers bindings, publishes config
+  ComposioServiceProvider.php    # Registers bindings, merges config into services.composio
   ComposioManager.php            # Main entry point (Facade target)
   ComposioToolSet.php            # Fetches tools, converts, executes, scopes
   Facades/Composio.php           # Laravel Facade
@@ -547,15 +541,38 @@ src/
 
 ---
 
-## Testing
+## Development
+
+### Testing
 
 ```bash
 composer test
-# or
-vendor/bin/phpunit
 ```
 
-The test suite includes unit tests for schema mapping, tool conversion, execution, hooks, and pagination, plus feature tests for service provider registration.
+### Code Quality
+
+```bash
+# Run all quality checks at once
+composer quality
+
+# Or individually
+composer pint:check    # Code style (Laravel Pint)
+composer phpstan       # Static analysis (PHPStan level 5)
+composer rector:dry-run # Code modernization (Rector)
+
+# Auto-fix code style
+composer pint
+
+# Auto-apply Rector fixes
+composer rector
+```
+
+### CI/CD
+
+GitHub Actions runs automatically on push to `main` and on pull requests:
+
+- **Tests** — PHP 8.2/8.3/8.4 across Laravel 11 and 12
+- **Code Quality** — Pint, PHPStan, and Rector checks in parallel
 
 ---
 
