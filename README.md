@@ -26,7 +26,7 @@ Composio API  -->  handles auth  -->  GitHub, Slack, Gmail, etc.
 ## Requirements
 
 - PHP 8.2+
-- Laravel 11, 12, or 13
+- Laravel 12 or 13
 - A [Composio API key](https://app.composio.dev)
 
 ## Installation
@@ -571,7 +571,7 @@ composer rector
 
 GitHub Actions runs automatically on push to `main` and on pull requests:
 
-- **Tests** — PHP 8.2/8.3/8.4 across Laravel 11 and 12
+- **Tests** — PHP 8.2/8.3/8.4 with Laravel 12
 - **Code Quality** — Pint, PHPStan, and Rector checks in parallel
 
 ---

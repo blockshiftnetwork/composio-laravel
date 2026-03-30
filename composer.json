@@ -8,21 +8,18 @@
         "blockshiftnetwork/composio-php": "dev-main",
         "prism-php/prism": "^0.99|^0.100",
         "guzzlehttp/guzzle": "^7.0",
-        "illuminate/support": "^11.0|^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0",
         "laravel/ai": "^0.4"
     },
     "require-dev": {
         "laravel/pint": "^1.29",
         "mockery/mockery": "^1.6",
-        "orchestra/testbench": "^9.0|^10.0",
+        "orchestra/testbench": "^10.0",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.0",
         "rector/rector": "^2.3"
     },
-    "suggest": {
-        "prism-php/prism": "Required for PrismPHP tool conversion (^0.99|^0.100)",
-        "laravel/ai": "Required for Laravel AI tool conversion (^0.4)"
-    },
+    "suggest": {},
     "autoload": {
         "psr-4": {
             "BlockshiftNetwork\\ComposioLaravel\\": "src/"

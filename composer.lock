@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "a447374312072779e2151af0b49d5e14",
+    "content-hash": "f5578c8872687f3674e58926398dda8f",
     "packages": [
         {
             "name": "blockshiftnetwork/composio-php",
