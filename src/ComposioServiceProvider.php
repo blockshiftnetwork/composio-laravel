@@ -18,18 +18,18 @@ class ComposioServiceProvider extends ServiceProvider
             'default_entity_id' => env('COMPOSIO_DEFAULT_ENTITY_ID'),
         ], $this->app['config']->get('services.composio', [])));
 
-        $this->app->singleton(Configuration::class, fn() => Configuration::getDefaultConfiguration()
+        $this->app->singleton(Configuration::class, fn () => Configuration::getDefaultConfiguration()
             ->setApiKey('x-api-key', config('services.composio.api_key'))
             ->setHost(config('services.composio.base_url')));
 
-        $this->app->singleton(ComposioManager::class, fn($app): \BlockshiftNetwork\ComposioLaravel\ComposioManager => new ComposioManager(
+        $this->app->singleton(ComposioManager::class, fn ($app): ComposioManager => new ComposioManager(
             $app->make(Configuration::class),
             $app->bound(ClientInterface::class)
                 ? $app->make(ClientInterface::class)
                 : new Client,
         ));
 
-        $this->app->bind(ComposioToolSet::class, fn($app) => $app->make(ComposioManager::class)->toolSet(
+        $this->app->bind(ComposioToolSet::class, fn ($app) => $app->make(ComposioManager::class)->toolSet(
             config('services.composio.default_user_id'),
             config('services.composio.default_entity_id'),
         ));

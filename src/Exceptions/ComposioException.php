@@ -4,6 +4,4 @@ namespace BlockshiftNetwork\ComposioLaravel\Exceptions;
 
 use RuntimeException;
 
-class ComposioException extends RuntimeException
-{
-}
+class ComposioException extends RuntimeException {}

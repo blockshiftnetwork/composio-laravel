@@ -1,0 +1,31 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/ComposioToolSet.php
+
+		-
+			message: '#^Parameter \$tool_slugs of method BlockshiftNetwork\\Composio\\Api\\ToolsApi\:\:getTools\(\) expects string\|null, array\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/ComposioToolSet.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Execution/ExecutionResult.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/LaravelAi/ComposioTool.php
+
+		-
+			message: '#^Call to function is_array\(\) with array\<string, mixed\> will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/ToolConverter/PrismToolConverter.php

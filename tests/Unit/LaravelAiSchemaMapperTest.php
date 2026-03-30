@@ -4,12 +4,12 @@ namespace BlockshiftNetwork\ComposioLaravel\Tests\Unit;
 
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiSchemaMapper;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
+use Illuminate\JsonSchema\Types\ArrayType;
 use Illuminate\JsonSchema\Types\BooleanType;
 use Illuminate\JsonSchema\Types\IntegerType;
 use Illuminate\JsonSchema\Types\NumberType;
-use Illuminate\JsonSchema\Types\StringType;
-use Illuminate\JsonSchema\Types\ArrayType;
 use Illuminate\JsonSchema\Types\ObjectType;
+use Illuminate\JsonSchema\Types\StringType;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 

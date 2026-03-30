@@ -12,8 +12,10 @@
         "laravel/ai": "^0.4"
     },
     "require-dev": {
+        "laravel/pint": "^1.29",
         "mockery/mockery": "^1.6",
         "orchestra/testbench": "^9.0|^10.0",
+        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^11.0",
         "rector/rector": "^2.3"
     },
@@ -42,9 +44,17 @@
         }
     },
     "scripts": {
+        "test": "phpunit",
+        "pint": "pint",
+        "pint:check": "pint --test",
+        "phpstan": "phpstan analyse",
         "rector": "rector process",
         "rector:dry-run": "rector process --dry-run",
-        "test": "phpunit"
+        "quality": [
+            "@pint:check",
+            "@phpstan",
+            "@rector:dry-run"
+        ]
     },
     "config": {
         "sort-packages": true

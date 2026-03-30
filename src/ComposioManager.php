@@ -10,11 +10,12 @@ use BlockshiftNetwork\ComposioLaravel\Auth\AuthConfigManager;
 use BlockshiftNetwork\ComposioLaravel\Auth\ConnectedAccountManager;
 use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutor;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
+use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiSchemaMapper;
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiToolConverter;
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\PrismToolConverter;
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\SchemaMapper;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiSchemaMapper;
 use GuzzleHttp\ClientInterface;
+use Prism\Prism\Tool;
 
 class ComposioManager
 {
@@ -34,7 +35,7 @@ class ComposioManager
         $executor = new ToolExecutor($toolsApi, $hookManager);
 
         $prismConverter = null;
-        if (class_exists(\Prism\Prism\Tool::class)) {
+        if (class_exists(Tool::class)) {
             $prismConverter = new PrismToolConverter(new SchemaMapper, $executor);
         }
 

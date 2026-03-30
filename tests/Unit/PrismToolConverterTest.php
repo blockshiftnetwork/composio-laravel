@@ -6,9 +6,9 @@ use BlockshiftNetwork\Composio\Model\Tool as ComposioTool;
 use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutor;
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\PrismToolConverter;
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\SchemaMapper;
-use Prism\Prism\Tool;
 use Mockery;
 use PHPUnit\Framework\TestCase;
+use Prism\Prism\Tool;
 
 class PrismToolConverterTest extends TestCase
 {

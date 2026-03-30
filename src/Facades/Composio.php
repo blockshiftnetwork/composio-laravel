@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \BlockshiftNetwork\ComposioLaravel\Auth\AuthConfigManager authConfigs()
  * @method static object api(string $apiClass)
  *
- * @see \BlockshiftNetwork\ComposioLaravel\ComposioManager
+ * @see ComposioManager
  */
 class Composio extends Facade
 {

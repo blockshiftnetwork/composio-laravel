@@ -6,13 +6,12 @@ use BlockshiftNetwork\Composio\Api\ToolsApi;
 use BlockshiftNetwork\Composio\Model\Error;
 use BlockshiftNetwork\Composio\Model\Tool as ComposioTool;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
-use BlockshiftNetwork\ComposioLaravel\Exceptions\ToolExecutionException;
 use BlockshiftNetwork\ComposioLaravel\Execution\ExecutionResult;
 use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutor;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiToolConverter;
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\PrismToolConverter;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\ToolConverterInterface;
+use Prism\Prism\Tool;
 
 class ComposioToolSet
 {
@@ -29,7 +28,7 @@ class ComposioToolSet
 
     // --- PrismPHP methods ---
 
-    /** @return \Prism\Prism\Tool[] */
+    /** @return Tool[] */
     public function getTools(
         ?string $toolkitSlug = null,
         ?array $toolSlugs = null,
@@ -40,7 +39,7 @@ class ComposioToolSet
         $composioTools = $this->fetchTools($toolkitSlug, $toolSlugs, $tags, $search);
 
         return array_map(
-            fn (ComposioTool $tool): \Prism\Prism\Tool => $this->prismConverter->convert(
+            fn (ComposioTool $tool): Tool => $this->prismConverter->convert(
                 $tool, $this->userId, $this->entityId, $this->connectedAccountId,
             ),
             $composioTools,
@@ -70,7 +69,7 @@ class ComposioToolSet
         $composioTools = $this->fetchTools($toolkitSlug, $toolSlugs, $tags, $search);
 
         return array_map(
-            fn (ComposioTool $tool): \BlockshiftNetwork\ComposioLaravel\LaravelAi\ComposioTool => $this->laravelAiConverter->convert(
+            fn (ComposioTool $tool): LaravelAi\ComposioTool => $this->laravelAiConverter->convert(
                 $tool, $this->userId, $this->entityId, $this->connectedAccountId,
             ),
             $composioTools,

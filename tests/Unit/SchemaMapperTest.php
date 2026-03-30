@@ -3,8 +3,8 @@
 namespace BlockshiftNetwork\ComposioLaravel\Tests\Unit;
 
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\SchemaMapper;
-use Prism\Prism\Tool;
 use PHPUnit\Framework\TestCase;
+use Prism\Prism\Tool;
 
 class SchemaMapperTest extends TestCase
 {

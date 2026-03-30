@@ -2,6 +2,4 @@
 
 namespace BlockshiftNetwork\ComposioLaravel\Exceptions;
 
-class AuthenticationException extends ComposioException
-{
-}
+class AuthenticationException extends ComposioException {}

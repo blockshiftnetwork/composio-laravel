@@ -2,6 +2,4 @@
 
 namespace BlockshiftNetwork\ComposioLaravel\Exceptions;
 
-class ToolExecutionException extends ComposioException
-{
-}
+class ToolExecutionException extends ComposioException {}

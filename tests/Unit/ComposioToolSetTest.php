@@ -12,9 +12,9 @@ use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutor;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\PrismToolConverter;
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\SchemaMapper;
-use Prism\Prism\Tool;
 use Mockery;
 use PHPUnit\Framework\TestCase;
+use Prism\Prism\Tool;
 
 class ComposioToolSetTest extends TestCase
 {
