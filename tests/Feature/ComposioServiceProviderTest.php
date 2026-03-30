@@ -17,10 +17,10 @@ class ComposioServiceProviderTest extends TestCase
 
     protected function defineEnvironment($app): void
     {
-        $app['config']->set('composio.api_key', 'test-api-key');
-        $app['config']->set('composio.base_url', 'https://test.composio.dev');
-        $app['config']->set('composio.default_user_id', 'test-user');
-        $app['config']->set('composio.default_entity_id', 'test-entity');
+        $app['config']->set('services.composio.api_key', 'test-api-key');
+        $app['config']->set('services.composio.base_url', 'https://test.composio.dev');
+        $app['config']->set('services.composio.default_user_id', 'test-user');
+        $app['config']->set('services.composio.default_entity_id', 'test-entity');
     }
 
     public function test_registers_configuration_singleton(): void
@@ -49,9 +49,9 @@ class ComposioServiceProviderTest extends TestCase
 
     public function test_config_is_merged(): void
     {
-        $this->assertEquals('test-api-key', config('composio.api_key'));
-        $this->assertEquals('https://test.composio.dev', config('composio.base_url'));
-        $this->assertEquals('test-user', config('composio.default_user_id'));
-        $this->assertEquals('test-entity', config('composio.default_entity_id'));
+        $this->assertEquals('test-api-key', config('services.composio.api_key'));
+        $this->assertEquals('https://test.composio.dev', config('services.composio.base_url'));
+        $this->assertEquals('test-user', config('services.composio.default_user_id'));
+        $this->assertEquals('test-entity', config('services.composio.default_entity_id'));
     }
 }

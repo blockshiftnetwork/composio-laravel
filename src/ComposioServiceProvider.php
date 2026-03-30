@@ -11,12 +11,17 @@ class ComposioServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->mergeConfigFrom(__DIR__.'/../config/composio.php', 'composio');
+        $this->app['config']->set('services.composio', array_merge([
+            'api_key' => env('COMPOSIO_API_KEY'),
+            'base_url' => env('COMPOSIO_BASE_URL', 'https://backend.composio.dev'),
+            'default_user_id' => env('COMPOSIO_DEFAULT_USER_ID'),
+            'default_entity_id' => env('COMPOSIO_DEFAULT_ENTITY_ID'),
+        ], $this->app['config']->get('services.composio', [])));
 
         $this->app->singleton(Configuration::class, function () {
             return Configuration::getDefaultConfiguration()
-                ->setApiKey('x-api-key', config('composio.api_key'))
-                ->setHost(config('composio.base_url'));
+                ->setApiKey('x-api-key', config('services.composio.api_key'))
+                ->setHost(config('services.composio.base_url'));
         });
 
         $this->app->singleton(ComposioManager::class, function ($app) {
@@ -30,16 +35,14 @@ class ComposioServiceProvider extends ServiceProvider
 
         $this->app->bind(ComposioToolSet::class, function ($app) {
             return $app->make(ComposioManager::class)->toolSet(
-                config('composio.default_user_id'),
-                config('composio.default_entity_id'),
+                config('services.composio.default_user_id'),
+                config('services.composio.default_entity_id'),
             );
         });
     }
 
     public function boot(): void
     {
-        $this->publishes([
-            __DIR__.'/../config/composio.php' => config_path('composio.php'),
-        ], 'composio-config');
+        //
     }
 }
