@@ -9,6 +9,7 @@ use Illuminate\Support\ServiceProvider;
 
 class ComposioServiceProvider extends ServiceProvider
 {
+    #[\Override]
     public function register(): void
     {
         $this->app['config']->set('services.composio', array_merge([

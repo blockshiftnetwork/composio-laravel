@@ -4,7 +4,7 @@
     "type": "library",
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.3",
         "blockshiftnetwork/composio-php": "dev-main",
         "prism-php/prism": "^0.99|^0.100",
         "guzzlehttp/guzzle": "^7.0",
