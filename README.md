@@ -351,6 +351,248 @@ Composio::authConfigs()->delete('auth_config_id');
 
 ---
 
+## Toolkits
+
+Browse the catalog of integrations available on Composio:
+
+```php
+use BlockshiftNetwork\ComposioLaravel\Facades\Composio;
+
+// List toolkits (paginated)
+$toolkits = Composio::toolkits()->list(category: 'productivity', limit: 20);
+
+// Get a single toolkit
+$github = Composio::toolkits()->get('github');
+
+// List categories
+$categories = Composio::toolkits()->categories();
+
+// Changelog
+$changelog = Composio::toolkits()->changelog();
+```
+
+---
+
+## Triggers
+
+[Triggers](https://docs.composio.dev/docs/triggers) deliver events from external apps (new Slack message, new GitHub commit, incoming Gmail, etc.) to your application.
+
+### Managing trigger types and instances
+
+```php
+use BlockshiftNetwork\Composio\Model\PostTriggerInstancesBySlugUpsertRequest;
+use BlockshiftNetwork\ComposioLaravel\Facades\Composio;
+
+// Discover available trigger types
+$types = Composio::triggers()->listTypes(toolkitSlugs: ['github']);
+$type  = Composio::triggers()->getType('GITHUB_PUSH_EVENT');
+
+// Activate a trigger for a connected account
+$request = new PostTriggerInstancesBySlugUpsertRequest;
+$request->setConnectedAccountId('conn_abc');
+$request->setTriggerConfig(['repository' => 'myorg/myrepo']);
+
+$instance = Composio::triggers()->upsert('GITHUB_PUSH_EVENT', $request);
+
+// List active instances
+$instances = Composio::triggers()->listInstances(connectedAccountIds: ['conn_abc']);
+
+// Pause / resume / delete
+Composio::triggers()->disable('trigger_instance_id');
+Composio::triggers()->enable('trigger_instance_id');
+Composio::triggers()->delete('trigger_instance_id');
+```
+
+### Receiving webhook events
+
+This package does **not** ship a webhook controller. Composio webhooks are signed with HMAC-SHA256 in the `webhook-signature` header (format `v1,<base64_signature>`), and the cleanest way to handle them in Laravel is the [`spatie/laravel-webhook-client`](https://github.com/spatie/laravel-webhook-client) package, which gives you signature verification, queued processing, and replay protection out of the box.
+
+Install Spatie's package:
+
+```bash
+composer require spatie/laravel-webhook-client
+php artisan vendor:publish --provider="Spatie\WebhookClient\WebhookClientServiceProvider" --tag="webhook-client-config"
+```
+
+Implement a `SignatureValidator` that verifies Composio's HMAC signature:
+
+```php
+namespace App\Webhooks\Composio;
+
+use Illuminate\Http\Request;
+use Spatie\WebhookClient\SignatureValidator\SignatureValidator;
+use Spatie\WebhookClient\WebhookConfig;
+
+class ComposioSignatureValidator implements SignatureValidator
+{
+    public function isValid(Request $request, WebhookConfig $config): bool
+    {
+        $header = $request->header('webhook-signature');
+        if (! $header || ! str_starts_with($header, 'v1,')) {
+            return false;
+        }
+
+        $provided = base64_decode(substr($header, 3));
+        $expected = hash_hmac('sha256', $request->getContent(), $config->signingSecret, true);
+
+        return hash_equals($expected, $provided);
+    }
+}
+```
+
+Wire it up in `config/webhook-client.php`:
+
+```php
+'configs' => [
+    [
+        'name'                => 'composio',
+        'signing_secret'      => env('COMPOSIO_WEBHOOK_SECRET'),
+        'signature_header_name' => 'webhook-signature',
+        'signature_validator' => \App\Webhooks\Composio\ComposioSignatureValidator::class,
+        'webhook_profile'     => \Spatie\WebhookClient\WebhookProfile\ProcessEverythingWebhookProfile::class,
+        'webhook_response'    => \Spatie\WebhookClient\WebhookResponse\DefaultRespondsTo::class,
+        'webhook_model'       => \Spatie\WebhookClient\Models\WebhookCall::class,
+        'process_webhook_job' => \App\Jobs\ProcessComposioWebhook::class,
+    ],
+],
+```
+
+Register the route and write your job:
+
+```php
+// routes/web.php
+Route::webhooks('/webhooks/composio', 'composio');
+```
+
+```php
+// app/Jobs/ProcessComposioWebhook.php
+namespace App\Jobs;
+
+use Spatie\WebhookClient\Jobs\ProcessWebhookJob;
+
+class ProcessComposioWebhook extends ProcessWebhookJob
+{
+    public function handle(): void
+    {
+        $payload = $this->webhookCall->payload;
+        // dispatch domain logic based on $payload['type'], $payload['data'], etc.
+    }
+}
+```
+
+> Composio's webhook configuration UI lives at [app.composio.dev](https://app.composio.dev). The signing secret you put in `COMPOSIO_WEBHOOK_SECRET` must match the one shown there. See the [Using Triggers guide](https://docs.composio.dev/docs/using-triggers) for the full event payload format.
+
+---
+
+## MCP Servers
+
+[Composio MCP](https://docs.composio.dev/docs/mcp-quickstart) generates a [Model Context Protocol](https://modelcontextprotocol.io/) server URL bundling whichever toolkits and auth configs you choose. Drop the URL into Claude Desktop, Cursor, ChatGPT, or any MCP-compatible client and your toolkits become first-class tools for the LLM — no custom server to write.
+
+```php
+use BlockshiftNetwork\Composio\Model\PostMcpServersCustomRequest;
+use BlockshiftNetwork\ComposioLaravel\Facades\Composio;
+
+// Create a custom MCP server bundling multiple toolkits
+$request = new PostMcpServersCustomRequest;
+$request->setName('engineering-assistant');
+$request->setToolkits(['github', 'slack', 'linear']);
+// $request->setAuthConfigIds(['ac_github_xxx', 'ac_slack_yyy']);
+
+$server = Composio::mcp()->createCustomServer($request);
+
+// Browse / fetch / update / delete
+$servers = Composio::mcp()->list(name: 'engineering-assistant');
+$server  = Composio::mcp()->get('mcp_server_id');
+Composio::mcp()->delete('mcp_server_id');
+
+// Per-user instances of a server
+$instances = Composio::mcp()->listInstances('mcp_server_id');
+Composio::mcp()->deleteInstance('mcp_server_id', 'instance_id');
+```
+
+---
+
+## Files
+
+List file artifacts that have been uploaded as inputs/outputs of tool executions:
+
+```php
+$files = Composio::files()->list(toolkitSlug: 'github', limit: 50);
+```
+
+> Uploads themselves go through Composio's presigned URL flow at execution time and are not exposed as a separate SDK call. The `files()->list()` endpoint is the read-side view.
+
+---
+
+## Advanced Tool Execution
+
+### Tool enums
+
+Fetch the canonical list of all tool slugs available on Composio:
+
+```php
+$enums = Composio::toolSet()->enums();
+```
+
+### Generate tool inputs from natural language
+
+Given a natural language description, ask Composio to produce the structured arguments for a specific tool:
+
+```php
+$inputs = Composio::toolSet(userId: 'user_123')
+    ->generateInputs('GITHUB_CREATE_ISSUE', 'Open an issue about the login redirect bug, label it priority-high');
+```
+
+### Proxy execute (call any HTTP endpoint with a connected account's auth)
+
+When Composio doesn't yet have a tool for the operation you need, you can proxy a raw HTTP request through any toolkit's authenticated connection:
+
+```php
+use BlockshiftNetwork\Composio\Model\PostToolsExecuteProxyRequest;
+
+$request = new PostToolsExecuteProxyRequest;
+$request->setEndpoint('/repos/myorg/myrepo/labels');
+$request->setMethod('GET');
+// $request->setBody([...]);
+// $request->setParameters([...]);
+
+$response = Composio::toolSet(userId: 'user_123')
+    ->withConnectedAccount('conn_github_abc')
+    ->proxyExecute($request);
+```
+
+### Custom (local) tools
+
+Expose your own PHP closures as tools alongside the Composio catalog. They appear in `getTools()` / `getLaravelAiTools()` and run locally — no API call to Composio:
+
+```php
+use BlockshiftNetwork\ComposioLaravel\Facades\Composio;
+
+Composio::customTools()->register(
+    slug: 'INTERNAL_LOOKUP_USER',
+    description: 'Looks up a user from our internal database by email',
+    inputSchema: [
+        'type'       => 'object',
+        'properties' => [
+            'email' => ['type' => 'string', 'description' => 'The email to search for'],
+        ],
+        'required' => ['email'],
+    ],
+    handler: function (array $args): array {
+        $user = \App\Models\User::where('email', $args['email'])->firstOrFail();
+        return ['id' => $user->id, 'name' => $user->name];
+    },
+);
+
+// Now it shows up alongside Composio tools
+$tools = Composio::toolSet()->getTools(toolkitSlug: 'github');
+// $tools contains GitHub tools + the INTERNAL_LOOKUP_USER local tool
+```
+
+Custom tools fully participate in the hook system — `beforeExecute` and `afterExecute` hooks fire for them just like remote tools.
+
+---
+
 ## Full Examples
 
 ### PrismPHP: AI assistant in a controller
@@ -522,6 +764,22 @@ src/
   Auth/
     ConnectedAccountManager.php  # CRUD for connected accounts
     AuthConfigManager.php        # CRUD for auth configurations
+
+  Toolkits/
+    ToolkitManager.php           # List/get toolkits, categories, changelog
+
+  Triggers/
+    TriggerManager.php           # CRUD trigger types & instances, enable/disable
+
+  Mcp/
+    McpServerManager.php         # Create custom MCP servers, manage instances
+
+  Files/
+    FileManager.php              # List uploaded file artifacts
+
+  Tools/
+    CustomToolRegistry.php       # Register local PHP closures as tools
+    CustomTool.php               # Value object for a registered custom tool
 
   Entities/
     Entity.php                   # User-scoped convenience wrapper

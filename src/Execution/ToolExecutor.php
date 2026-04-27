@@ -47,7 +47,7 @@ class ToolExecutor
             );
         }
 
-        $result = new ExecutionResult($response);
+        $result = ExecutionResult::fromResponse($response);
 
         return $this->hooks->runAfter($toolSlug, $result);
     }

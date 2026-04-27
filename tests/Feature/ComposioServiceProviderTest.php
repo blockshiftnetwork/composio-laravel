@@ -3,9 +3,17 @@
 namespace BlockshiftNetwork\ComposioLaravel\Tests\Feature;
 
 use BlockshiftNetwork\Composio\Configuration;
+use BlockshiftNetwork\ComposioLaravel\Auth\AuthConfigManager;
+use BlockshiftNetwork\ComposioLaravel\Auth\ConnectedAccountManager;
 use BlockshiftNetwork\ComposioLaravel\ComposioManager;
 use BlockshiftNetwork\ComposioLaravel\ComposioServiceProvider;
 use BlockshiftNetwork\ComposioLaravel\ComposioToolSet;
+use BlockshiftNetwork\ComposioLaravel\Facades\Composio;
+use BlockshiftNetwork\ComposioLaravel\Files\FileManager;
+use BlockshiftNetwork\ComposioLaravel\Mcp\McpServerManager;
+use BlockshiftNetwork\ComposioLaravel\Toolkits\ToolkitManager;
+use BlockshiftNetwork\ComposioLaravel\Tools\CustomToolRegistry;
+use BlockshiftNetwork\ComposioLaravel\Triggers\TriggerManager;
 use Orchestra\Testbench\TestCase;
 
 class ComposioServiceProviderTest extends TestCase
@@ -53,5 +61,39 @@ class ComposioServiceProviderTest extends TestCase
         $this->assertEquals('https://test.composio.dev', config('services.composio.base_url'));
         $this->assertEquals('test-user', config('services.composio.default_user_id'));
         $this->assertEquals('test-entity', config('services.composio.default_entity_id'));
+    }
+
+    public function test_facade_resolves_managers(): void
+    {
+        $this->assertInstanceOf(ConnectedAccountManager::class, Composio::connectedAccounts());
+        $this->assertInstanceOf(AuthConfigManager::class, Composio::authConfigs());
+        $this->assertInstanceOf(ToolkitManager::class, Composio::toolkits());
+        $this->assertInstanceOf(TriggerManager::class, Composio::triggers());
+        $this->assertInstanceOf(McpServerManager::class, Composio::mcp());
+        $this->assertInstanceOf(FileManager::class, Composio::files());
+        $this->assertInstanceOf(CustomToolRegistry::class, Composio::customTools());
+    }
+
+    public function test_managers_are_cached_within_a_manager_instance(): void
+    {
+        $manager = $this->app->make(ComposioManager::class);
+
+        $this->assertSame($manager->toolkits(), $manager->toolkits());
+        $this->assertSame($manager->triggers(), $manager->triggers());
+        $this->assertSame($manager->mcp(), $manager->mcp());
+        $this->assertSame($manager->files(), $manager->files());
+        $this->assertSame($manager->customTools(), $manager->customTools());
+    }
+
+    public function test_tool_set_inherits_custom_tools_registry(): void
+    {
+        $manager = $this->app->make(ComposioManager::class);
+        $manager->customTools()->register('LOCAL_PING', 'ping', [], fn () => 'pong');
+
+        $toolSet = $manager->toolSet();
+        $registry = $toolSet->customTools();
+
+        $this->assertNotNull($registry);
+        $this->assertTrue($registry->has('LOCAL_PING'));
     }
 }
