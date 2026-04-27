@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlockshiftNetwork\ComposioLaravel\LaravelAi;
 
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiSchemaMapper;
