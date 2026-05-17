@@ -8,8 +8,9 @@ use BlockshiftNetwork\ComposioLaravel\ComposioManager;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static \BlockshiftNetwork\ComposioLaravel\ComposioToolSet toolSet(?string $userId = null, ?string $entityId = null)
- * @method static \BlockshiftNetwork\ComposioLaravel\Entities\Entity entity(string $userId)
+ * @method static \BlockshiftNetwork\ComposioLaravel\Session\ComposioSession create(string $userId, array|\BlockshiftNetwork\ComposioLaravel\Session\SessionConfig $config = [])
+ * @method static \BlockshiftNetwork\ComposioLaravel\Session\ComposioSession use(string $sessionId)
+ * @method static \BlockshiftNetwork\ComposioLaravel\Tools\ToolManager tools(?string $userId = null)
  * @method static \BlockshiftNetwork\ComposioLaravel\Auth\ConnectedAccountManager connectedAccounts()
  * @method static \BlockshiftNetwork\ComposioLaravel\Auth\AuthConfigManager authConfigs()
  * @method static \BlockshiftNetwork\ComposioLaravel\Toolkits\ToolkitManager toolkits()

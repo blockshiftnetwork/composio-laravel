@@ -3,6 +3,7 @@
 namespace BlockshiftNetwork\ComposioLaravel;
 
 use BlockshiftNetwork\Composio\Configuration;
+use BlockshiftNetwork\ComposioLaravel\Tools\ToolManager;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Support\ServiceProvider;
@@ -16,7 +17,6 @@ class ComposioServiceProvider extends ServiceProvider
             'api_key' => env('COMPOSIO_API_KEY'),
             'base_url' => env('COMPOSIO_BASE_URL', 'https://backend.composio.dev'),
             'default_user_id' => env('COMPOSIO_DEFAULT_USER_ID'),
-            'default_entity_id' => env('COMPOSIO_DEFAULT_ENTITY_ID'),
         ], $this->app['config']->get('services.composio', [])));
 
         $this->app->singleton(Configuration::class, fn () => Configuration::getDefaultConfiguration()
@@ -30,9 +30,8 @@ class ComposioServiceProvider extends ServiceProvider
                 : new Client,
         ));
 
-        $this->app->bind(ComposioToolSet::class, fn ($app) => $app->make(ComposioManager::class)->toolSet(
+        $this->app->bind(ToolManager::class, fn ($app) => $app->make(ComposioManager::class)->tools(
             config('services.composio.default_user_id'),
-            config('services.composio.default_entity_id'),
         ));
     }
 

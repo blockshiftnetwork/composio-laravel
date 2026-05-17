@@ -90,6 +90,28 @@ class ToolExecutorTest extends TestCase
         $this->assertTrue($result->isSuccessful());
     }
 
+    public function test_sends_empty_arguments_as_json_object(): void
+    {
+        $response = Mockery::mock(PostToolsExecuteByToolSlug200Response::class);
+        $response->shouldReceive('getSuccessful')->andReturn(true);
+        $response->shouldReceive('getData')->andReturn([]);
+        $response->shouldReceive('getError')->andReturn(null);
+        $response->shouldReceive('getLogId')->andReturn('log_123');
+
+        $toolsApi = Mockery::mock(ToolsApi::class);
+        $toolsApi->shouldReceive('postToolsExecuteByToolSlug')
+            ->once()
+            ->withArgs(function (string $slug, mixed $request): bool {
+                return $slug === 'HACKERNEWS_GET_FRONTPAGE'
+                    && $request->getArguments() instanceof \stdClass;
+            })
+            ->andReturn($response);
+
+        $executor = new ToolExecutor($toolsApi, new HookManager);
+
+        $this->assertTrue($executor->execute('HACKERNEWS_GET_FRONTPAGE')->isSuccessful());
+    }
+
     public function test_runs_after_hooks(): void
     {
         $response = Mockery::mock(PostToolsExecuteByToolSlug200Response::class);

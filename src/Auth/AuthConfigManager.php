@@ -62,6 +62,27 @@ class AuthConfigManager
         return $response;
     }
 
+    public function updateStatus(string $authConfigId, string $status): mixed
+    {
+        $response = $this->api->patchAuthConfigsByNanoidByStatus($authConfigId, $status);
+
+        if ($response instanceof Error) {
+            throw new ComposioException("Failed to update auth config '{$authConfigId}' status: ".$response->getError());
+        }
+
+        return $response;
+    }
+
+    public function enable(string $authConfigId): mixed
+    {
+        return $this->updateStatus($authConfigId, 'ENABLED');
+    }
+
+    public function disable(string $authConfigId): mixed
+    {
+        return $this->updateStatus($authConfigId, 'DISABLED');
+    }
+
     public function delete(string $authConfigId): mixed
     {
         $response = $this->api->deleteAuthConfigsByNanoid($authConfigId);

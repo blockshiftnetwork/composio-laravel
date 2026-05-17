@@ -7,12 +7,12 @@ use BlockshiftNetwork\ComposioLaravel\Auth\AuthConfigManager;
 use BlockshiftNetwork\ComposioLaravel\Auth\ConnectedAccountManager;
 use BlockshiftNetwork\ComposioLaravel\ComposioManager;
 use BlockshiftNetwork\ComposioLaravel\ComposioServiceProvider;
-use BlockshiftNetwork\ComposioLaravel\ComposioToolSet;
 use BlockshiftNetwork\ComposioLaravel\Facades\Composio;
 use BlockshiftNetwork\ComposioLaravel\Files\FileManager;
 use BlockshiftNetwork\ComposioLaravel\Mcp\McpServerManager;
 use BlockshiftNetwork\ComposioLaravel\Toolkits\ToolkitManager;
 use BlockshiftNetwork\ComposioLaravel\Tools\CustomToolRegistry;
+use BlockshiftNetwork\ComposioLaravel\Tools\ToolManager;
 use BlockshiftNetwork\ComposioLaravel\Triggers\TriggerManager;
 use Orchestra\Testbench\TestCase;
 
@@ -28,7 +28,6 @@ class ComposioServiceProviderTest extends TestCase
         $app['config']->set('services.composio.api_key', 'test-api-key');
         $app['config']->set('services.composio.base_url', 'https://test.composio.dev');
         $app['config']->set('services.composio.default_user_id', 'test-user');
-        $app['config']->set('services.composio.default_entity_id', 'test-entity');
     }
 
     public function test_registers_configuration_singleton(): void
@@ -48,11 +47,11 @@ class ComposioServiceProviderTest extends TestCase
         $this->assertSame($manager1, $manager2);
     }
 
-    public function test_binds_composio_tool_set(): void
+    public function test_binds_tool_manager(): void
     {
-        $toolSet = $this->app->make(ComposioToolSet::class);
+        $toolManager = $this->app->make(ToolManager::class);
 
-        $this->assertInstanceOf(ComposioToolSet::class, $toolSet);
+        $this->assertInstanceOf(ToolManager::class, $toolManager);
     }
 
     public function test_config_is_merged(): void
@@ -60,7 +59,6 @@ class ComposioServiceProviderTest extends TestCase
         $this->assertEquals('test-api-key', config('services.composio.api_key'));
         $this->assertEquals('https://test.composio.dev', config('services.composio.base_url'));
         $this->assertEquals('test-user', config('services.composio.default_user_id'));
-        $this->assertEquals('test-entity', config('services.composio.default_entity_id'));
     }
 
     public function test_facade_resolves_managers(): void
@@ -85,13 +83,13 @@ class ComposioServiceProviderTest extends TestCase
         $this->assertSame($manager->customTools(), $manager->customTools());
     }
 
-    public function test_tool_set_inherits_custom_tools_registry(): void
+    public function test_tool_manager_inherits_custom_tools_registry(): void
     {
         $manager = $this->app->make(ComposioManager::class);
         $manager->customTools()->register('LOCAL_PING', 'ping', [], fn () => 'pong');
 
-        $toolSet = $manager->toolSet();
-        $registry = $toolSet->customTools();
+        $toolManager = $manager->tools();
+        $registry = $toolManager->customTools();
 
         $this->assertNotNull($registry);
         $this->assertTrue($registry->has('LOCAL_PING'));

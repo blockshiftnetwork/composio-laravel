@@ -6,6 +6,7 @@ use BlockshiftNetwork\Composio\Api\MCPApi;
 use BlockshiftNetwork\Composio\Model\Error;
 use BlockshiftNetwork\Composio\Model\PatchMcpByIdRequest;
 use BlockshiftNetwork\Composio\Model\PostMcpServersCustomRequest;
+use BlockshiftNetwork\Composio\Model\PostMcpServersGenerateRequest;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use BlockshiftNetwork\ComposioLaravel\Mcp\McpServerManager;
 use Mockery;
@@ -64,6 +65,17 @@ class McpServerManagerTest extends TestCase
         $api->shouldReceive('postMcpServersCustom')->once()->with($request)->andReturn($expected);
 
         $this->assertSame($expected, (new McpServerManager($api))->createCustomServer($request));
+    }
+
+    public function test_generates_server_url(): void
+    {
+        $request = Mockery::mock(PostMcpServersGenerateRequest::class);
+        $expected = new stdClass;
+
+        $api = Mockery::mock(MCPApi::class);
+        $api->shouldReceive('postMcpServersGenerate')->once()->with($request)->andReturn($expected);
+
+        $this->assertSame($expected, (new McpServerManager($api))->generate($request));
     }
 
     public function test_throws_when_create_fails(): void

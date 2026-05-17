@@ -191,4 +191,27 @@ class SchemaMapperTest extends TestCase
         $params = $result->parameters();
         $this->assertCount(0, $params);
     }
+
+    public function test_maps_schema_objects_returned_by_sdk(): void
+    {
+        $tool = new Tool;
+        $schema = json_decode(json_encode([
+            'properties' => [
+                'query' => ['type' => 'string', 'description' => 'Search query'],
+                'filters' => [
+                    'type' => 'object',
+                    'description' => 'Filters',
+                    'properties' => [
+                        'limit' => ['type' => 'integer', 'description' => 'Limit'],
+                    ],
+                ],
+            ],
+            'required' => ['query'],
+        ]));
+
+        $result = $this->mapper->applySchema($tool, $schema);
+
+        $this->assertCount(2, $result->parameters());
+        $this->assertContains('query', $result->requiredParameters());
+    }
 }

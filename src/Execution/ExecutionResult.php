@@ -2,6 +2,7 @@
 
 namespace BlockshiftNetwork\ComposioLaravel\Execution;
 
+use BlockshiftNetwork\Composio\Model\PostToolRouterSessionBySessionIdExecute200Response;
 use BlockshiftNetwork\Composio\Model\PostToolsExecuteByToolSlug200Response;
 
 class ExecutionResult
@@ -14,16 +15,34 @@ class ExecutionResult
         private readonly array $data,
         private readonly ?string $error,
         private readonly ?string $logId,
-        private readonly ?PostToolsExecuteByToolSlug200Response $response = null,
+        private readonly mixed $response = null,
     ) {}
 
     public static function fromResponse(PostToolsExecuteByToolSlug200Response $response): self
     {
         return new self(
             successful: (bool) $response->getSuccessful(),
-            data: $response->getData() ?? [],
-            error: $response->getError(),
-            logId: $response->getLogId() ?? '',
+            data: self::normalizeData($response->getData()),
+            error: self::normalizeError($response->getError()),
+            logId: self::normalizeLogId($response->getLogId()),
+            response: $response,
+        );
+    }
+
+    public static function fromSessionResponse(PostToolRouterSessionBySessionIdExecute200Response $response): self
+    {
+        /** @var mixed $data */
+        $data = $response->getData();
+        /** @var mixed $error */
+        $error = $response->getError();
+        /** @var mixed $logId */
+        $logId = $response->getLogId();
+
+        return new self(
+            successful: $error === null || $error === '',
+            data: self::normalizeData($data),
+            error: self::normalizeError($error),
+            logId: self::normalizeLogId($logId),
             response: $response,
         );
     }
@@ -73,8 +92,26 @@ class ExecutionResult
         return json_encode($this->data);
     }
 
-    public function raw(): ?PostToolsExecuteByToolSlug200Response
+    public function raw(): mixed
     {
         return $this->response;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private static function normalizeData(mixed $data): array
+    {
+        return is_array($data) ? $data : [];
+    }
+
+    private static function normalizeError(mixed $error): ?string
+    {
+        return is_string($error) && $error !== '' ? $error : null;
+    }
+
+    private static function normalizeLogId(mixed $logId): string
+    {
+        return is_string($logId) ? $logId : '';
     }
 }

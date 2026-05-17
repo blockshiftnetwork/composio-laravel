@@ -3,7 +3,7 @@
 namespace BlockshiftNetwork\ComposioLaravel\LaravelAi;
 
 use BlockshiftNetwork\Composio\Model\Tool as ComposioToolModel;
-use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutor;
+use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutorInterface;
 use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiSchemaMapper;
 use Illuminate\Contracts\JsonSchema\JsonSchema;
 use Laravel\Ai\Contracts\Tool;
@@ -14,10 +14,7 @@ class ComposioTool implements Tool
     public function __construct(
         private readonly ComposioToolModel $composioTool,
         private readonly LaravelAiSchemaMapper $schemaMapper,
-        private readonly ToolExecutor $executor,
-        private readonly ?string $userId = null,
-        private readonly ?string $entityId = null,
-        private readonly ?string $connectedAccountId = null,
+        private readonly ToolExecutorInterface $executor,
     ) {}
 
     public function description(): string
@@ -27,9 +24,10 @@ class ComposioTool implements Tool
 
     public function schema(JsonSchema $schema): array
     {
+        /** @var mixed $inputParams */
         $inputParams = $this->composioTool->getInputParameters();
 
-        if (! is_array($inputParams) || $inputParams === []) {
+        if ((! is_array($inputParams) && ! is_object($inputParams)) || $inputParams === []) {
             return [];
         }
 
@@ -41,9 +39,6 @@ class ComposioTool implements Tool
         $result = $this->executor->execute(
             $this->composioTool->getSlug(),
             $request->all(),
-            $this->userId,
-            $this->entityId,
-            $this->connectedAccountId,
         );
 
         return $result->toToolOutput();

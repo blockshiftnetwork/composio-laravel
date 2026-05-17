@@ -1,53 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace BlockshiftNetwork\ComposioLaravel\Execution;
 
-use BlockshiftNetwork\Composio\Api\ToolsApi;
+use BlockshiftNetwork\Composio\Api\ToolRouterApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PostToolsExecuteByToolSlugRequest;
+use BlockshiftNetwork\Composio\Model\PostToolRouterSessionBySessionIdExecuteRequest;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ToolExecutionException;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
 
-class ToolExecutor implements ToolExecutorInterface
+class SessionToolExecutor implements ToolExecutorInterface
 {
     public function __construct(
-        private readonly ToolsApi $toolsApi,
+        private readonly ToolRouterApi $toolRouterApi,
         private readonly HookManager $hooks,
+        private readonly string $sessionId,
+        private readonly ?string $sessionAccessKey = null,
     ) {}
 
-    public function execute(
-        string $toolSlug,
-        array $arguments = [],
-        ?string $userId = null,
-        ?string $connectedAccountId = null,
-        ?string $version = null,
-    ): ExecutionResult {
+    /**
+     * @param  array<string, mixed>  $arguments
+     */
+    public function execute(string $toolSlug, array $arguments = []): ExecutionResult
+    {
         $arguments = $this->hooks->runBefore($toolSlug, $arguments);
 
-        $request = new PostToolsExecuteByToolSlugRequest;
+        $request = new PostToolRouterSessionBySessionIdExecuteRequest;
+        $request->setToolSlug($toolSlug);
         $request->setArguments($this->argumentsPayload($arguments));
 
-        if ($userId !== null) {
-            $request->setUserId($userId);
-        }
-
-        if ($connectedAccountId !== null) {
-            $request->setConnectedAccountId($connectedAccountId);
-        }
-
-        if ($version !== null) {
-            $request->setVersion($version);
-        }
-
-        $response = $this->toolsApi->postToolsExecuteByToolSlug($toolSlug, $request);
+        $response = $this->toolRouterApi->postToolRouterSessionBySessionIdExecute(
+            $this->sessionId,
+            $this->sessionAccessKey,
+            $request,
+        );
 
         if ($response instanceof Error) {
             throw new ToolExecutionException(
-                "Tool execution failed for '{$toolSlug}': ".$response->getError()
+                "Session tool execution failed for '{$toolSlug}': ".$response->getError()
             );
         }
 
-        $result = ExecutionResult::fromResponse($response);
+        $result = ExecutionResult::fromSessionResponse($response);
 
         return $this->hooks->runAfter($toolSlug, $result);
     }

@@ -6,6 +6,7 @@ use BlockshiftNetwork\Composio\Api\MCPApi;
 use BlockshiftNetwork\Composio\Model\Error;
 use BlockshiftNetwork\Composio\Model\PatchMcpByIdRequest;
 use BlockshiftNetwork\Composio\Model\PostMcpServersCustomRequest;
+use BlockshiftNetwork\Composio\Model\PostMcpServersGenerateRequest;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 
 class McpServerManager
@@ -61,6 +62,17 @@ class McpServerManager
 
         if ($response instanceof Error) {
             throw new ComposioException('Failed to create custom MCP server: '.$response->getError());
+        }
+
+        return $response;
+    }
+
+    public function generate(PostMcpServersGenerateRequest $request): mixed
+    {
+        $response = $this->api->postMcpServersGenerate($request);
+
+        if ($response instanceof Error) {
+            throw new ComposioException('Failed to generate MCP server URL: '.$response->getError());
         }
 
         return $response;

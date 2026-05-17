@@ -44,14 +44,14 @@ class LaravelAiToolConverterTest extends TestCase
             'required' => ['title'],
         ]);
 
-        $result = $converter->convert($composioTool, 'user_123');
+        $result = $converter->convert($composioTool);
 
         $this->assertInstanceOf(ComposioTool::class, $result);
         $this->assertInstanceOf(LaravelAiToolContract::class, $result);
         $this->assertEquals('Create a GitHub issue', $result->description());
     }
 
-    public function test_preserves_scoping_params(): void
+    public function test_converts_empty_schema_tool(): void
     {
         $executor = Mockery::mock(ToolExecutor::class);
         $mapper = new LaravelAiSchemaMapper;
@@ -62,7 +62,7 @@ class LaravelAiToolConverterTest extends TestCase
         $composioTool->shouldReceive('getDescription')->andReturn('Create issue');
         $composioTool->shouldReceive('getInputParameters')->andReturn([]);
 
-        $result = $converter->convert($composioTool, 'user_1', 'entity_1', 'conn_1');
+        $result = $converter->convert($composioTool);
 
         $this->assertInstanceOf(ComposioTool::class, $result);
     }
