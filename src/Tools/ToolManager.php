@@ -6,8 +6,8 @@ namespace BlockshiftNetwork\ComposioLaravel\Tools;
 
 use BlockshiftNetwork\Composio\Api\ToolsApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PostToolsExecuteByToolSlugInputRequest;
-use BlockshiftNetwork\Composio\Model\PostToolsExecuteProxyRequest;
+use BlockshiftNetwork\Composio\Model\PostV31ToolsExecuteByToolSlugInputRequest;
+use BlockshiftNetwork\Composio\Model\PostV31ToolsExecuteProxyRequest;
 use BlockshiftNetwork\Composio\Model\Tool as ComposioToolModel;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use BlockshiftNetwork\ComposioLaravel\Execution\ExecutionResult;
@@ -85,7 +85,7 @@ class ToolManager
             return $this->customToPrism($this->customTools->get($toolSlug));
         }
 
-        $response = $this->toolsApi->getToolsByToolSlug($toolSlug);
+        $response = $this->toolsApi->getV31ToolsByToolSlug($toolSlug);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to fetch tool '{$toolSlug}': ".$response->getError());
@@ -136,7 +136,7 @@ class ToolManager
             return $this->customToLaravelAi($this->customTools->get($toolSlug));
         }
 
-        $response = $this->toolsApi->getToolsByToolSlug($toolSlug);
+        $response = $this->toolsApi->getV31ToolsByToolSlug($toolSlug);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to fetch tool '{$toolSlug}': ".$response->getError());
@@ -226,7 +226,7 @@ class ToolManager
 
     public function enums(): mixed
     {
-        $response = $this->toolsApi->getToolsEnum();
+        $response = $this->toolsApi->getV31ToolsEnum();
 
         if ($response instanceof Error) {
             throw new ComposioException('Failed to fetch tool enums: '.$response->getError());
@@ -237,10 +237,10 @@ class ToolManager
 
     public function generateInputs(string $toolSlug, string $text): mixed
     {
-        $request = new PostToolsExecuteByToolSlugInputRequest;
+        $request = new PostV31ToolsExecuteByToolSlugInputRequest;
         $request->setText($text);
 
-        $response = $this->toolsApi->postToolsExecuteByToolSlugInput($toolSlug, $request);
+        $response = $this->toolsApi->postV31ToolsExecuteByToolSlugInput($toolSlug, $request);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to generate inputs for '{$toolSlug}': ".$response->getError());
@@ -249,9 +249,9 @@ class ToolManager
         return $response;
     }
 
-    public function proxyExecute(PostToolsExecuteProxyRequest $request): mixed
+    public function proxyExecute(PostV31ToolsExecuteProxyRequest $request): mixed
     {
-        $response = $this->toolsApi->postToolsExecuteProxy($request);
+        $response = $this->toolsApi->postV31ToolsExecuteProxy($request);
 
         if ($response instanceof Error) {
             throw new ComposioException('Failed to execute proxy request: '.$response->getError());
@@ -279,7 +279,7 @@ class ToolManager
         $cursor = null;
 
         do {
-            $response = $this->toolsApi->getTools(
+            $response = $this->toolsApi->getV31Tools(
                 toolkit_slug: $toolkitSlug,
                 tool_slugs: $this->csv($toolSlugs),
                 auth_config_ids: $this->mixedValue($authConfigIds),

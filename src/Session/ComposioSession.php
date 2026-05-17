@@ -7,7 +7,7 @@ namespace BlockshiftNetwork\ComposioLaravel\Session;
 use BlockshiftNetwork\Composio\Api\ToolRouterApi;
 use BlockshiftNetwork\Composio\Api\ToolsApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PostToolRouterSessionBySessionIdLinkRequest;
+use BlockshiftNetwork\Composio\Model\PostV31ToolRouterSessionBySessionIdLinkRequest;
 use BlockshiftNetwork\Composio\Model\Tool as ComposioToolModel;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use BlockshiftNetwork\ComposioLaravel\Execution\ExecutionResult;
@@ -59,7 +59,7 @@ class ComposioSession
     {
         $this->ensurePrismAvailable();
 
-        $response = $this->toolsApi->getToolsByToolSlug($toolSlug);
+        $response = $this->toolsApi->getV31ToolsByToolSlug($toolSlug);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to fetch tool '{$toolSlug}': ".$response->getError());
@@ -89,7 +89,7 @@ class ComposioSession
     {
         $this->ensureLaravelAiAvailable();
 
-        $response = $this->toolsApi->getToolsByToolSlug($toolSlug);
+        $response = $this->toolsApi->getV31ToolsByToolSlug($toolSlug);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to fetch tool '{$toolSlug}': ".$response->getError());
@@ -108,14 +108,14 @@ class ComposioSession
 
     public function authorize(string $toolkit, ?string $callbackUrl = null): mixed
     {
-        $request = new PostToolRouterSessionBySessionIdLinkRequest;
+        $request = new PostV31ToolRouterSessionBySessionIdLinkRequest;
         $request->setToolkit($toolkit);
 
         if ($callbackUrl !== null) {
             $request->setCallbackUrl($callbackUrl);
         }
 
-        $response = $this->toolRouterApi->postToolRouterSessionBySessionIdLink($this->sessionId, $request);
+        $response = $this->toolRouterApi->postV31ToolRouterSessionBySessionIdLink($this->sessionId, $request);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to authorize toolkit '{$toolkit}' for session '{$this->sessionId}': ".$response->getError());
@@ -130,7 +130,7 @@ class ComposioSession
         array|string|null $toolkits = null,
         bool $isConnected = false,
     ): mixed {
-        $response = $this->toolRouterApi->getToolRouterSessionBySessionIdToolkits(
+        $response = $this->toolRouterApi->getV31ToolRouterSessionBySessionIdToolkits(
             $this->sessionId,
             $limit,
             $cursor,
@@ -173,7 +173,7 @@ class ComposioSession
         $cursor = null;
 
         do {
-            $response = $this->toolsApi->getTools(
+            $response = $this->toolsApi->getV31Tools(
                 toolkit_slug: $toolkitSlug,
                 tool_slugs: $this->csv($toolSlugs),
                 tags: $tags,

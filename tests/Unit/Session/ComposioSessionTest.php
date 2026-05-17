@@ -6,9 +6,9 @@ namespace BlockshiftNetwork\ComposioLaravel\Tests\Unit\Session;
 
 use BlockshiftNetwork\Composio\Api\ToolRouterApi;
 use BlockshiftNetwork\Composio\Api\ToolsApi;
-use BlockshiftNetwork\Composio\Model\PostToolRouterSessionBySessionIdExecute200Response;
-use BlockshiftNetwork\Composio\Model\PostToolRouterSessionBySessionIdLink201Response;
-use BlockshiftNetwork\Composio\Model\PostToolRouterSessionBySessionIdLinkRequest;
+use BlockshiftNetwork\Composio\Model\PostV31ToolRouterSessionBySessionIdExecute200Response;
+use BlockshiftNetwork\Composio\Model\PostV31ToolRouterSessionBySessionIdLink201Response;
+use BlockshiftNetwork\Composio\Model\PostV31ToolRouterSessionBySessionIdLinkRequest;
 use BlockshiftNetwork\Composio\Model\Tool as ComposioToolModel;
 use BlockshiftNetwork\Composio\Model\ToolsPaginated;
 use BlockshiftNetwork\ComposioLaravel\Execution\SessionToolExecutor;
@@ -33,17 +33,16 @@ class ComposioSessionTest extends TestCase
 
     public function test_executes_tool_through_session_router(): void
     {
-        $response = Mockery::mock(PostToolRouterSessionBySessionIdExecute200Response::class);
+        $response = Mockery::mock(PostV31ToolRouterSessionBySessionIdExecute200Response::class);
         $response->shouldReceive('getData')->andReturn(['issue_number' => 42]);
         $response->shouldReceive('getError')->andReturn(null);
         $response->shouldReceive('getLogId')->andReturn('log_123');
 
         $routerApi = Mockery::mock(ToolRouterApi::class);
-        $routerApi->shouldReceive('postToolRouterSessionBySessionIdExecute')
+        $routerApi->shouldReceive('postV31ToolRouterSessionBySessionIdExecute')
             ->once()
-            ->withArgs(function (string $sessionId, mixed $accessKey, mixed $request): bool {
+            ->withArgs(function (string $sessionId, mixed $request): bool {
                 return $sessionId === 'session_123'
-                    && $accessKey === null
                     && $request->getToolSlug() === 'GITHUB_CREATE_ISSUE'
                     && $request->getArguments() === ['title' => 'Test'];
             })
@@ -60,17 +59,16 @@ class ComposioSessionTest extends TestCase
 
     public function test_executes_session_tool_with_empty_arguments_as_json_object(): void
     {
-        $response = Mockery::mock(PostToolRouterSessionBySessionIdExecute200Response::class);
+        $response = Mockery::mock(PostV31ToolRouterSessionBySessionIdExecute200Response::class);
         $response->shouldReceive('getData')->andReturn([]);
         $response->shouldReceive('getError')->andReturn(null);
         $response->shouldReceive('getLogId')->andReturn('log_123');
 
         $routerApi = Mockery::mock(ToolRouterApi::class);
-        $routerApi->shouldReceive('postToolRouterSessionBySessionIdExecute')
+        $routerApi->shouldReceive('postV31ToolRouterSessionBySessionIdExecute')
             ->once()
-            ->withArgs(function (string $sessionId, mixed $accessKey, mixed $request): bool {
+            ->withArgs(function (string $sessionId, mixed $request): bool {
                 return $sessionId === 'session_123'
-                    && $accessKey === null
                     && $request->getToolSlug() === 'HACKERNEWS_GET_FRONTPAGE'
                     && $request->getArguments() instanceof \stdClass;
             })
@@ -84,7 +82,7 @@ class ComposioSessionTest extends TestCase
     public function test_exposes_session_tools_as_prism_tools(): void
     {
         $toolsApi = Mockery::mock(ToolsApi::class);
-        $toolsApi->shouldReceive('getTools')
+        $toolsApi->shouldReceive('getV31Tools')
             ->once()
             ->withArgs(fn (...$args): bool => $args[1] === 'GITHUB_CREATE_ISSUE')
             ->andReturn(new ToolsPaginated([
@@ -107,7 +105,7 @@ class ComposioSessionTest extends TestCase
         }
 
         $toolsApi = Mockery::mock(ToolsApi::class);
-        $toolsApi->shouldReceive('getTools')
+        $toolsApi->shouldReceive('getV31Tools')
             ->once()
             ->andReturn(new ToolsPaginated([
                 'items' => [$this->makeTool('GITHUB_CREATE_ISSUE')],
@@ -124,15 +122,15 @@ class ComposioSessionTest extends TestCase
 
     public function test_authorize_links_toolkit_to_session(): void
     {
-        $linkResponse = Mockery::mock(PostToolRouterSessionBySessionIdLink201Response::class);
+        $linkResponse = Mockery::mock(PostV31ToolRouterSessionBySessionIdLink201Response::class);
         $linkResponse->shouldReceive('getRedirectUrl')->andReturn('https://composio.test/authorize');
 
         $routerApi = Mockery::mock(ToolRouterApi::class);
-        $routerApi->shouldReceive('postToolRouterSessionBySessionIdLink')
+        $routerApi->shouldReceive('postV31ToolRouterSessionBySessionIdLink')
             ->once()
             ->withArgs(function (string $sessionId, mixed $request): bool {
                 return $sessionId === 'session_123'
-                    && $request instanceof PostToolRouterSessionBySessionIdLinkRequest
+                    && $request instanceof PostV31ToolRouterSessionBySessionIdLinkRequest
                     && $request->getToolkit() === 'github'
                     && $request->getCallbackUrl() === 'https://app.test/callback';
             })

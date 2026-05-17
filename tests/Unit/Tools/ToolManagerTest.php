@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace BlockshiftNetwork\ComposioLaravel\Tests\Unit\Tools;
 
 use BlockshiftNetwork\Composio\Api\ToolsApi;
-use BlockshiftNetwork\Composio\Model\PostToolsExecuteByToolSlug200Response;
+use BlockshiftNetwork\Composio\Model\PostV31ToolsExecuteByToolSlug200Response;
 use BlockshiftNetwork\Composio\Model\Tool as ComposioToolModel;
 use BlockshiftNetwork\Composio\Model\ToolsPaginated;
 use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutor;
@@ -30,7 +30,7 @@ class ToolManagerTest extends TestCase
     public function test_fetches_and_converts_direct_tools_for_prism(): void
     {
         $toolsApi = Mockery::mock(ToolsApi::class);
-        $toolsApi->shouldReceive('getTools')
+        $toolsApi->shouldReceive('getV31Tools')
             ->once()
             ->withArgs(fn (...$args): bool => $args[0] === 'github'
                 && $args[1] === 'GITHUB_CREATE_ISSUE'
@@ -50,16 +50,16 @@ class ToolManagerTest extends TestCase
 
     public function test_executes_direct_tool_with_user_and_connected_account(): void
     {
-        $response = Mockery::mock(PostToolsExecuteByToolSlug200Response::class);
+        $response = Mockery::mock(PostV31ToolsExecuteByToolSlug200Response::class);
         $response->shouldReceive('getSuccessful')->andReturn(true);
         $response->shouldReceive('getData')->andReturn(['ok' => true]);
         $response->shouldReceive('getError')->andReturn(null);
         $response->shouldReceive('getLogId')->andReturn('log_123');
 
         $toolsApi = Mockery::mock(ToolsApi::class);
-        $toolsApi->shouldReceive('postToolsExecuteByToolSlug')
+        $toolsApi->shouldReceive('postV31ToolsExecuteByToolSlug')
             ->once()
-            ->withArgs(function (string $toolSlug, mixed $request): bool {
+            ->withArgs(function (string $toolSlug, mixed $headers, mixed $request): bool {
                 return $toolSlug === 'GITHUB_CREATE_ISSUE'
                     && $request->getArguments() === ['title' => 'Test']
                     && $request->getUserId() === 'user_123'

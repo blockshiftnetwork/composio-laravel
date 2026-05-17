@@ -60,7 +60,7 @@ class ComposioManager
     public function create(string $userId, array|SessionConfig $config = []): ComposioSession
     {
         $sessionConfig = $config instanceof SessionConfig ? $config : SessionConfig::fromArray($config);
-        $response = $this->toolRouterApi()->postToolRouterSession(
+        $response = $this->toolRouterApi()->postV31ToolRouterSession(
             $this->rawRequest($sessionConfig->toPayload($userId)),
         );
 
@@ -69,7 +69,7 @@ class ComposioManager
 
     public function use(string $sessionId): ComposioSession
     {
-        $response = $this->toolRouterApi()->getToolRouterSessionBySessionId($sessionId);
+        $response = $this->toolRouterApi()->getV31ToolRouterSessionBySessionId($sessionId);
 
         return $this->sessionFromResponse($response);
     }

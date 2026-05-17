@@ -20,7 +20,7 @@ class FileManager
         ?int $limit = null,
         ?string $cursor = null,
     ): mixed {
-        $response = $this->api->getFilesList(
+        $response = $this->api->getV31FilesList(
             toolkit_slug: $toolkitSlug,
             tool_slug: $toolSlug,
             limit: $limit,

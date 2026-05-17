@@ -2,8 +2,8 @@
 
 namespace BlockshiftNetwork\ComposioLaravel\Execution;
 
-use BlockshiftNetwork\Composio\Model\PostToolRouterSessionBySessionIdExecute200Response;
-use BlockshiftNetwork\Composio\Model\PostToolsExecuteByToolSlug200Response;
+use BlockshiftNetwork\Composio\Model\PostV31ToolRouterSessionBySessionIdExecute200Response;
+use BlockshiftNetwork\Composio\Model\PostV31ToolsExecuteByToolSlug200Response;
 
 class ExecutionResult
 {
@@ -18,7 +18,7 @@ class ExecutionResult
         private readonly mixed $response = null,
     ) {}
 
-    public static function fromResponse(PostToolsExecuteByToolSlug200Response $response): self
+    public static function fromResponse(PostV31ToolsExecuteByToolSlug200Response $response): self
     {
         return new self(
             successful: (bool) $response->getSuccessful(),
@@ -29,11 +29,10 @@ class ExecutionResult
         );
     }
 
-    public static function fromSessionResponse(PostToolRouterSessionBySessionIdExecute200Response $response): self
+    public static function fromSessionResponse(PostV31ToolRouterSessionBySessionIdExecute200Response $response): self
     {
         /** @var mixed $data */
         $data = $response->getData();
-        /** @var mixed $error */
         $error = $response->getError();
         /** @var mixed $logId */
         $logId = $response->getLogId();

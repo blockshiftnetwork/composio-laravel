@@ -6,8 +6,8 @@ namespace BlockshiftNetwork\ComposioLaravel\Tests\Unit\Auth;
 
 use BlockshiftNetwork\Composio\Api\ConnectedAccountsApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PatchConnectedAccountsByNanoIdStatusRequest;
-use BlockshiftNetwork\Composio\Model\PostConnectedAccountsLinkRequest;
+use BlockshiftNetwork\Composio\Model\PatchV31ConnectedAccountsByNanoIdStatusRequest;
+use BlockshiftNetwork\Composio\Model\PostV31ConnectedAccountsLinkRequest;
 use BlockshiftNetwork\ComposioLaravel\Auth\ConnectedAccountManager;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use Mockery;
@@ -26,9 +26,9 @@ class ConnectedAccountManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(ConnectedAccountsApi::class);
-        $api->shouldReceive('postConnectedAccountsLink')
+        $api->shouldReceive('postV31ConnectedAccountsLink')
             ->once()
-            ->withArgs(function (PostConnectedAccountsLinkRequest $request): bool {
+            ->withArgs(function (PostV31ConnectedAccountsLinkRequest $request): bool {
                 return $request->getUserId() === 'user_123'
                     && $request->getAuthConfigId() === 'ac_1'
                     && $request->getCallbackUrl() === 'https://app.test/callback';
@@ -45,9 +45,9 @@ class ConnectedAccountManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(ConnectedAccountsApi::class);
-        $api->shouldReceive('patchConnectedAccountsByNanoIdStatus')
+        $api->shouldReceive('patchV31ConnectedAccountsByNanoIdStatus')
             ->once()
-            ->withArgs(function (string $id, PatchConnectedAccountsByNanoIdStatusRequest $request): bool {
+            ->withArgs(function (string $id, PatchV31ConnectedAccountsByNanoIdStatusRequest $request): bool {
                 return $id === 'ca_1' && $request->getEnabled() === false;
             })
             ->andReturn($expected);
@@ -66,7 +66,7 @@ class ConnectedAccountManagerTest extends TestCase
         };
 
         $api = Mockery::mock(ConnectedAccountsApi::class);
-        $api->shouldReceive('getConnectedAccountsByNanoid')
+        $api->shouldReceive('getV31ConnectedAccountsByNanoid')
             ->once()
             ->with('ca_1')
             ->andReturn($account);
@@ -80,7 +80,7 @@ class ConnectedAccountManagerTest extends TestCase
         $error->shouldReceive('getError')->andReturn('bad request');
 
         $api = Mockery::mock(ConnectedAccountsApi::class);
-        $api->shouldReceive('postConnectedAccountsLink')->once()->andReturn($error);
+        $api->shouldReceive('postV31ConnectedAccountsLink')->once()->andReturn($error);
 
         $this->expectException(ComposioException::class);
         $this->expectExceptionMessage('Failed to create connected account link: bad request');

@@ -6,7 +6,7 @@ namespace BlockshiftNetwork\ComposioLaravel\Execution;
 
 use BlockshiftNetwork\Composio\Api\ToolRouterApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PostToolRouterSessionBySessionIdExecuteRequest;
+use BlockshiftNetwork\Composio\Model\PostV31ToolRouterSessionBySessionIdExecuteRequest;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ToolExecutionException;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
 
@@ -16,7 +16,6 @@ class SessionToolExecutor implements ToolExecutorInterface
         private readonly ToolRouterApi $toolRouterApi,
         private readonly HookManager $hooks,
         private readonly string $sessionId,
-        private readonly ?string $sessionAccessKey = null,
     ) {}
 
     /**
@@ -26,13 +25,12 @@ class SessionToolExecutor implements ToolExecutorInterface
     {
         $arguments = $this->hooks->runBefore($toolSlug, $arguments);
 
-        $request = new PostToolRouterSessionBySessionIdExecuteRequest;
+        $request = new PostV31ToolRouterSessionBySessionIdExecuteRequest;
         $request->setToolSlug($toolSlug);
         $request->setArguments($this->argumentsPayload($arguments));
 
-        $response = $this->toolRouterApi->postToolRouterSessionBySessionIdExecute(
+        $response = $this->toolRouterApi->postV31ToolRouterSessionBySessionIdExecute(
             $this->sessionId,
-            $this->sessionAccessKey,
             $request,
         );
 

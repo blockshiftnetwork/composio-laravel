@@ -22,7 +22,7 @@ class FileManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(FilesApi::class);
-        $api->shouldReceive('getFilesList')
+        $api->shouldReceive('getV31FilesList')
             ->once()
             ->with('github', 'GITHUB_UPLOAD', 25, 'cur')
             ->andReturn($expected);
@@ -39,7 +39,7 @@ class FileManagerTest extends TestCase
         $error->shouldReceive('getError')->andReturn('boom');
 
         $api = Mockery::mock(FilesApi::class);
-        $api->shouldReceive('getFilesList')->once()->andReturn($error);
+        $api->shouldReceive('getV31FilesList')->once()->andReturn($error);
 
         $this->expectException(ComposioException::class);
         $this->expectExceptionMessage('Failed to list files: boom');

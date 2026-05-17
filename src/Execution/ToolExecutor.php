@@ -4,7 +4,7 @@ namespace BlockshiftNetwork\ComposioLaravel\Execution;
 
 use BlockshiftNetwork\Composio\Api\ToolsApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PostToolsExecuteByToolSlugRequest;
+use BlockshiftNetwork\Composio\Model\PostV31ToolsExecuteByToolSlugRequest;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ToolExecutionException;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
 
@@ -24,7 +24,7 @@ class ToolExecutor implements ToolExecutorInterface
     ): ExecutionResult {
         $arguments = $this->hooks->runBefore($toolSlug, $arguments);
 
-        $request = new PostToolsExecuteByToolSlugRequest;
+        $request = new PostV31ToolsExecuteByToolSlugRequest;
         $request->setArguments($this->argumentsPayload($arguments));
 
         if ($userId !== null) {
@@ -39,7 +39,7 @@ class ToolExecutor implements ToolExecutorInterface
             $request->setVersion($version);
         }
 
-        $response = $this->toolsApi->postToolsExecuteByToolSlug($toolSlug, $request);
+        $response = $this->toolsApi->postV31ToolsExecuteByToolSlug($toolSlug, null, $request);
 
         if ($response instanceof Error) {
             throw new ToolExecutionException(

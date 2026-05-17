@@ -24,7 +24,7 @@ class AuthConfigManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(AuthConfigsApi::class);
-        $api->shouldReceive('patchAuthConfigsByNanoidByStatus')
+        $api->shouldReceive('patchV31AuthConfigsByNanoidByStatus')
             ->once()
             ->with('ac_1', 'ENABLED')
             ->andReturn($expected);
@@ -36,7 +36,7 @@ class AuthConfigManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(AuthConfigsApi::class);
-        $api->shouldReceive('patchAuthConfigsByNanoidByStatus')
+        $api->shouldReceive('patchV31AuthConfigsByNanoidByStatus')
             ->once()
             ->with('ac_1', 'DISABLED')
             ->andReturn($expected);
@@ -50,7 +50,7 @@ class AuthConfigManagerTest extends TestCase
         $error->shouldReceive('getError')->andReturn('forbidden');
 
         $api = Mockery::mock(AuthConfigsApi::class);
-        $api->shouldReceive('patchAuthConfigsByNanoidByStatus')->once()->andReturn($error);
+        $api->shouldReceive('patchV31AuthConfigsByNanoidByStatus')->once()->andReturn($error);
 
         $this->expectException(ComposioException::class);
         $this->expectExceptionMessage("Failed to update auth config 'ac_1' status: forbidden");

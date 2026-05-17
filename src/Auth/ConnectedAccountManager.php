@@ -6,9 +6,9 @@ namespace BlockshiftNetwork\ComposioLaravel\Auth;
 
 use BlockshiftNetwork\Composio\Api\ConnectedAccountsApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PatchConnectedAccountsByNanoIdStatusRequest;
-use BlockshiftNetwork\Composio\Model\PostConnectedAccountsLinkRequest;
-use BlockshiftNetwork\Composio\Model\PostConnectedAccountsRequest;
+use BlockshiftNetwork\Composio\Model\PatchV31ConnectedAccountsByNanoIdStatusRequest;
+use BlockshiftNetwork\Composio\Model\PostV31ConnectedAccountsLinkRequest;
+use BlockshiftNetwork\Composio\Model\PostV31ConnectedAccountsRequest;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 
 class ConnectedAccountManager
@@ -25,11 +25,11 @@ class ConnectedAccountManager
         ?array $connectedAccountIds = null,
         ?string $orderBy = 'created_at',
         ?string $orderDirection = 'desc',
-        ?array $labels = null,
+        ?string $accountType = null,
         ?int $limit = null,
         ?string $cursor = null,
     ): mixed {
-        $response = $this->api->getConnectedAccounts(
+        $response = $this->api->getV31ConnectedAccounts(
             toolkit_slugs: $toolkitSlugs,
             statuses: $statuses,
             cursor: $cursor,
@@ -39,7 +39,7 @@ class ConnectedAccountManager
             connected_account_ids: $connectedAccountIds,
             order_by: $orderBy,
             order_direction: $orderDirection,
-            labels: $labels,
+            account_type: $accountType,
         );
 
         if ($response instanceof Error) {
@@ -55,7 +55,7 @@ class ConnectedAccountManager
         ?string $callbackUrl = null,
         mixed $connectionData = null,
     ): mixed {
-        $request = new PostConnectedAccountsLinkRequest;
+        $request = new PostV31ConnectedAccountsLinkRequest;
         $request->setUserId($userId);
         $request->setAuthConfigId($authConfigId);
 
@@ -67,7 +67,7 @@ class ConnectedAccountManager
             $request->setConnectionData($connectionData);
         }
 
-        $response = $this->api->postConnectedAccountsLink($request);
+        $response = $this->api->postV31ConnectedAccountsLink($request);
 
         if ($response instanceof Error) {
             throw new ComposioException('Failed to create connected account link: '.$response->getError());
@@ -78,7 +78,7 @@ class ConnectedAccountManager
 
     public function get(string $connectedAccountId): mixed
     {
-        $response = $this->api->getConnectedAccountsByNanoid($connectedAccountId);
+        $response = $this->api->getV31ConnectedAccountsByNanoid($connectedAccountId);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to get connected account '{$connectedAccountId}': ".$response->getError());
@@ -87,9 +87,9 @@ class ConnectedAccountManager
         return $response;
     }
 
-    public function create(PostConnectedAccountsRequest $request): mixed
+    public function create(PostV31ConnectedAccountsRequest $request): mixed
     {
-        $response = $this->api->postConnectedAccounts($request);
+        $response = $this->api->postV31ConnectedAccounts($request);
 
         if ($response instanceof Error) {
             throw new ComposioException('Failed to create connected account: '.$response->getError());
@@ -100,7 +100,7 @@ class ConnectedAccountManager
 
     public function refresh(string $connectedAccountId, ?string $redirectUrl = null): mixed
     {
-        $response = $this->api->postConnectedAccountsByNanoidRefresh(
+        $response = $this->api->postV31ConnectedAccountsByNanoidRefresh(
             $connectedAccountId,
             $redirectUrl,
         );
@@ -114,10 +114,10 @@ class ConnectedAccountManager
 
     public function updateStatus(string $connectedAccountId, bool $enabled): mixed
     {
-        $request = new PatchConnectedAccountsByNanoIdStatusRequest;
+        $request = new PatchV31ConnectedAccountsByNanoIdStatusRequest;
         $request->setEnabled($enabled);
 
-        $response = $this->api->patchConnectedAccountsByNanoIdStatus($connectedAccountId, $request);
+        $response = $this->api->patchV31ConnectedAccountsByNanoIdStatus($connectedAccountId, $request);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to update connected account '{$connectedAccountId}' status: ".$response->getError());
@@ -167,7 +167,7 @@ class ConnectedAccountManager
 
     public function delete(string $connectedAccountId): mixed
     {
-        $response = $this->api->deleteConnectedAccountsByNanoid($connectedAccountId);
+        $response = $this->api->deleteV31ConnectedAccountsByNanoid($connectedAccountId);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to delete connected account '{$connectedAccountId}': ".$response->getError());
