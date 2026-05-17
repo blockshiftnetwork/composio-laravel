@@ -4,7 +4,7 @@ namespace BlockshiftNetwork\ComposioLaravel\Tests\Unit;
 
 use BlockshiftNetwork\Composio\Api\ToolsApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PostToolsExecuteByToolSlug200Response;
+use BlockshiftNetwork\Composio\Model\PostV31ToolsExecuteByToolSlug200Response;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ToolExecutionException;
 use BlockshiftNetwork\ComposioLaravel\Execution\ExecutionResult;
 use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutor;
@@ -22,14 +22,14 @@ class ToolExecutorTest extends TestCase
 
     public function test_executes_tool_successfully(): void
     {
-        $response = Mockery::mock(PostToolsExecuteByToolSlug200Response::class);
+        $response = Mockery::mock(PostV31ToolsExecuteByToolSlug200Response::class);
         $response->shouldReceive('getSuccessful')->andReturn(true);
         $response->shouldReceive('getData')->andReturn(['issue_number' => 42]);
         $response->shouldReceive('getError')->andReturn(null);
         $response->shouldReceive('getLogId')->andReturn('log_123');
 
         $toolsApi = Mockery::mock(ToolsApi::class);
-        $toolsApi->shouldReceive('postToolsExecuteByToolSlug')
+        $toolsApi->shouldReceive('postV31ToolsExecuteByToolSlug')
             ->once()
             ->andReturn($response);
 
@@ -49,7 +49,7 @@ class ToolExecutorTest extends TestCase
         $error->shouldReceive('getError')->andReturn('Unauthorized');
 
         $toolsApi = Mockery::mock(ToolsApi::class);
-        $toolsApi->shouldReceive('postToolsExecuteByToolSlug')
+        $toolsApi->shouldReceive('postV31ToolsExecuteByToolSlug')
             ->once()
             ->andReturn($error);
 
@@ -63,16 +63,16 @@ class ToolExecutorTest extends TestCase
 
     public function test_runs_before_hooks(): void
     {
-        $response = Mockery::mock(PostToolsExecuteByToolSlug200Response::class);
+        $response = Mockery::mock(PostV31ToolsExecuteByToolSlug200Response::class);
         $response->shouldReceive('getSuccessful')->andReturn(true);
         $response->shouldReceive('getData')->andReturn([]);
         $response->shouldReceive('getError')->andReturn(null);
         $response->shouldReceive('getLogId')->andReturn('log_123');
 
         $toolsApi = Mockery::mock(ToolsApi::class);
-        $toolsApi->shouldReceive('postToolsExecuteByToolSlug')
+        $toolsApi->shouldReceive('postV31ToolsExecuteByToolSlug')
             ->once()
-            ->withArgs(function ($slug, $request) {
+            ->withArgs(function ($slug, $headers, $request) {
                 return $request->getArguments()['extra'] === 'added_by_hook';
             })
             ->andReturn($response);
@@ -90,16 +90,38 @@ class ToolExecutorTest extends TestCase
         $this->assertTrue($result->isSuccessful());
     }
 
+    public function test_sends_empty_arguments_as_json_object(): void
+    {
+        $response = Mockery::mock(PostV31ToolsExecuteByToolSlug200Response::class);
+        $response->shouldReceive('getSuccessful')->andReturn(true);
+        $response->shouldReceive('getData')->andReturn([]);
+        $response->shouldReceive('getError')->andReturn(null);
+        $response->shouldReceive('getLogId')->andReturn('log_123');
+
+        $toolsApi = Mockery::mock(ToolsApi::class);
+        $toolsApi->shouldReceive('postV31ToolsExecuteByToolSlug')
+            ->once()
+            ->withArgs(function (string $slug, mixed $headers, mixed $request): bool {
+                return $slug === 'HACKERNEWS_GET_FRONTPAGE'
+                    && $request->getArguments() instanceof \stdClass;
+            })
+            ->andReturn($response);
+
+        $executor = new ToolExecutor($toolsApi, new HookManager);
+
+        $this->assertTrue($executor->execute('HACKERNEWS_GET_FRONTPAGE')->isSuccessful());
+    }
+
     public function test_runs_after_hooks(): void
     {
-        $response = Mockery::mock(PostToolsExecuteByToolSlug200Response::class);
+        $response = Mockery::mock(PostV31ToolsExecuteByToolSlug200Response::class);
         $response->shouldReceive('getSuccessful')->andReturn(true);
         $response->shouldReceive('getData')->andReturn(['key' => 'value']);
         $response->shouldReceive('getError')->andReturn(null);
         $response->shouldReceive('getLogId')->andReturn('log_123');
 
         $toolsApi = Mockery::mock(ToolsApi::class);
-        $toolsApi->shouldReceive('postToolsExecuteByToolSlug')
+        $toolsApi->shouldReceive('postV31ToolsExecuteByToolSlug')
             ->once()
             ->andReturn($response);
 
@@ -119,14 +141,14 @@ class ToolExecutorTest extends TestCase
 
     public function test_wildcard_hooks_run_for_all_tools(): void
     {
-        $response = Mockery::mock(PostToolsExecuteByToolSlug200Response::class);
+        $response = Mockery::mock(PostV31ToolsExecuteByToolSlug200Response::class);
         $response->shouldReceive('getSuccessful')->andReturn(true);
         $response->shouldReceive('getData')->andReturn([]);
         $response->shouldReceive('getError')->andReturn(null);
         $response->shouldReceive('getLogId')->andReturn('log_123');
 
         $toolsApi = Mockery::mock(ToolsApi::class);
-        $toolsApi->shouldReceive('postToolsExecuteByToolSlug')
+        $toolsApi->shouldReceive('postV31ToolsExecuteByToolSlug')
             ->andReturn($response);
 
         $toolsExecuted = [];

@@ -4,7 +4,7 @@ namespace BlockshiftNetwork\ComposioLaravel\Triggers;
 
 use BlockshiftNetwork\Composio\Api\TriggersApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PatchTriggerInstancesManageByTriggerIdRequest;
+use BlockshiftNetwork\Composio\Model\PatchV31TriggerInstancesManageByTriggerIdRequest;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 
 class TriggerManager
@@ -19,7 +19,7 @@ class TriggerManager
         ?int $limit = null,
         ?string $cursor = null,
     ): mixed {
-        $response = $this->api->getTriggersTypes(
+        $response = $this->api->getV31TriggersTypes(
             toolkit_slugs: $toolkitSlugs,
             toolkit_versions: $toolkitVersions,
             limit: $limit,
@@ -35,7 +35,7 @@ class TriggerManager
 
     public function getType(string $slug, mixed $toolkitVersions = null): mixed
     {
-        $response = $this->api->getTriggersTypesBySlug($slug, $toolkitVersions);
+        $response = $this->api->getV31TriggersTypesBySlug($slug, $toolkitVersions);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to get trigger type '{$slug}': ".$response->getError());
@@ -46,7 +46,7 @@ class TriggerManager
 
     public function listTypesEnum(): mixed
     {
-        $response = $this->api->getTriggersTypesListEnum();
+        $response = $this->api->getV31TriggersTypesListEnum();
 
         if ($response instanceof Error) {
             throw new ComposioException('Failed to fetch trigger types enum: '.$response->getError());
@@ -64,20 +64,19 @@ class TriggerManager
         ?int $limit = null,
         ?string $cursor = null,
     ): mixed {
-        $response = $this->api->getTriggerInstancesActive(
+        $response = $this->api->getV31TriggerInstancesActive(
             connected_account_ids: $connectedAccountIds,
             auth_config_ids: $authConfigIds,
             trigger_ids: $triggerIds,
             trigger_names: $triggerNames,
-            connected_account_ids2: null,
-            auth_config_ids2: null,
-            trigger_ids2: null,
+            connectedAccountIds: null,
+            authConfigIds: null,
+            triggerIds: null,
             show_disabled: $showDisabled,
-            trigger_names2: null,
-            page: 1,
-            show_disabled2: $showDisabled,
-            deprecated_connected_account_uuids: null,
-            deprecated_auth_config_uuids: null,
+            triggerNames: null,
+            showDisabled: $showDisabled,
+            deprecatedConnectedAccountUuids: null,
+            deprecatedAuthConfigUuids: null,
             limit: $limit,
             cursor: $cursor,
         );
@@ -91,7 +90,7 @@ class TriggerManager
 
     public function upsert(string $triggerSlug, mixed $request): mixed
     {
-        $response = $this->api->postTriggerInstancesBySlugUpsert($triggerSlug, $request);
+        $response = $this->api->postV31TriggerInstancesBySlugUpsert($triggerSlug, $request);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to upsert trigger instance '{$triggerSlug}': ".$response->getError());
@@ -112,10 +111,10 @@ class TriggerManager
 
     public function setStatus(string $triggerId, string $status): mixed
     {
-        $request = new PatchTriggerInstancesManageByTriggerIdRequest;
+        $request = new PatchV31TriggerInstancesManageByTriggerIdRequest;
         $request->setStatus($status);
 
-        $response = $this->api->patchTriggerInstancesManageByTriggerId($triggerId, $request);
+        $response = $this->api->patchV31TriggerInstancesManageByTriggerId($triggerId, $request);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to {$status} trigger instance '{$triggerId}': ".$response->getError());
@@ -126,7 +125,7 @@ class TriggerManager
 
     public function delete(string $triggerId): mixed
     {
-        $response = $this->api->deleteTriggerInstancesManageByTriggerId($triggerId);
+        $response = $this->api->deleteV31TriggerInstancesManageByTriggerId($triggerId);
 
         if ($response instanceof Error) {
             throw new ComposioException("Failed to delete trigger instance '{$triggerId}': ".$response->getError());

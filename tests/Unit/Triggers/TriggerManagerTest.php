@@ -4,7 +4,7 @@ namespace BlockshiftNetwork\ComposioLaravel\Tests\Unit\Triggers;
 
 use BlockshiftNetwork\Composio\Api\TriggersApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PatchTriggerInstancesManageByTriggerIdRequest;
+use BlockshiftNetwork\Composio\Model\PatchV31TriggerInstancesManageByTriggerIdRequest;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use BlockshiftNetwork\ComposioLaravel\Triggers\TriggerManager;
 use Mockery;
@@ -23,7 +23,7 @@ class TriggerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(TriggersApi::class);
-        $api->shouldReceive('getTriggersTypes')
+        $api->shouldReceive('getV31TriggersTypes')
             ->once()
             ->with(['github'], null, 50, 'cur')
             ->andReturn($expected);
@@ -37,7 +37,7 @@ class TriggerManagerTest extends TestCase
         $error->shouldReceive('getError')->andReturn('boom');
 
         $api = Mockery::mock(TriggersApi::class);
-        $api->shouldReceive('getTriggersTypes')->once()->andReturn($error);
+        $api->shouldReceive('getV31TriggersTypes')->once()->andReturn($error);
 
         $this->expectException(ComposioException::class);
         $this->expectExceptionMessage('Failed to list trigger types: boom');
@@ -49,7 +49,7 @@ class TriggerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(TriggersApi::class);
-        $api->shouldReceive('getTriggersTypesBySlug')->once()->with('GITHUB_PUSH', null)->andReturn($expected);
+        $api->shouldReceive('getV31TriggersTypesBySlug')->once()->with('GITHUB_PUSH', null)->andReturn($expected);
 
         $this->assertSame($expected, (new TriggerManager($api))->getType('GITHUB_PUSH'));
     }
@@ -58,7 +58,7 @@ class TriggerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(TriggersApi::class);
-        $api->shouldReceive('getTriggersTypesListEnum')->once()->andReturn($expected);
+        $api->shouldReceive('getV31TriggersTypesListEnum')->once()->andReturn($expected);
 
         $this->assertSame($expected, (new TriggerManager($api))->listTypesEnum());
     }
@@ -67,9 +67,9 @@ class TriggerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(TriggersApi::class);
-        $api->shouldReceive('getTriggerInstancesActive')
+        $api->shouldReceive('getV31TriggerInstancesActive')
             ->once()
-            ->with(['acct'], null, null, null, null, null, null, true, null, 1, true, null, null, 25, null)
+            ->with(null, ['acct'], null, null, null, null, null, null, true, null, true, null, null, 25, null)
             ->andReturn($expected);
 
         $this->assertSame(
@@ -88,7 +88,7 @@ class TriggerManagerTest extends TestCase
         $expected = new stdClass;
 
         $api = Mockery::mock(TriggersApi::class);
-        $api->shouldReceive('postTriggerInstancesBySlugUpsert')
+        $api->shouldReceive('postV31TriggerInstancesBySlugUpsert')
             ->once()
             ->with('GITHUB_PUSH', $request)
             ->andReturn($expected);
@@ -100,9 +100,9 @@ class TriggerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(TriggersApi::class);
-        $api->shouldReceive('patchTriggerInstancesManageByTriggerId')
+        $api->shouldReceive('patchV31TriggerInstancesManageByTriggerId')
             ->once()
-            ->withArgs(function (string $id, PatchTriggerInstancesManageByTriggerIdRequest $req): bool {
+            ->withArgs(function (string $id, PatchV31TriggerInstancesManageByTriggerIdRequest $req): bool {
                 return $id === 'trig_1' && $req->getStatus() === 'enable';
             })
             ->andReturn($expected);
@@ -114,9 +114,9 @@ class TriggerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(TriggersApi::class);
-        $api->shouldReceive('patchTriggerInstancesManageByTriggerId')
+        $api->shouldReceive('patchV31TriggerInstancesManageByTriggerId')
             ->once()
-            ->withArgs(function (string $id, PatchTriggerInstancesManageByTriggerIdRequest $req): bool {
+            ->withArgs(function (string $id, PatchV31TriggerInstancesManageByTriggerIdRequest $req): bool {
                 return $id === 'trig_2' && $req->getStatus() === 'disable';
             })
             ->andReturn($expected);
@@ -130,7 +130,7 @@ class TriggerManagerTest extends TestCase
         $error->shouldReceive('getError')->andReturn('forbidden');
 
         $api = Mockery::mock(TriggersApi::class);
-        $api->shouldReceive('patchTriggerInstancesManageByTriggerId')->once()->andReturn($error);
+        $api->shouldReceive('patchV31TriggerInstancesManageByTriggerId')->once()->andReturn($error);
 
         $this->expectException(ComposioException::class);
         $this->expectExceptionMessage("Failed to enable trigger instance 'trig_3': forbidden");
@@ -142,7 +142,7 @@ class TriggerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(TriggersApi::class);
-        $api->shouldReceive('deleteTriggerInstancesManageByTriggerId')
+        $api->shouldReceive('deleteV31TriggerInstancesManageByTriggerId')
             ->once()
             ->with('trig_4')
             ->andReturn($expected);

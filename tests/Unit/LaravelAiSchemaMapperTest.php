@@ -122,6 +122,21 @@ class LaravelAiSchemaMapperTest extends TestCase
         $this->assertEmpty($result);
     }
 
+    public function test_maps_schema_objects_returned_by_sdk(): void
+    {
+        $schema = $this->createMockJsonSchema();
+        $jsonSchema = json_decode(json_encode([
+            'properties' => [
+                'query' => ['type' => 'string', 'description' => 'Search query'],
+            ],
+            'required' => ['query'],
+        ]));
+
+        $result = $this->mapper->mapProperties($schema, $jsonSchema);
+
+        $this->assertArrayHasKey('query', $result);
+    }
+
     private function createMockJsonSchema(): JsonSchema
     {
         $schema = Mockery::mock(JsonSchema::class);

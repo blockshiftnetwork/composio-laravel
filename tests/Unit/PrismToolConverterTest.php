@@ -36,7 +36,7 @@ class PrismToolConverterTest extends TestCase
             ],
         );
 
-        $result = $converter->convert($composioTool, 'user_123', null, null);
+        $result = $converter->convert($composioTool);
 
         $this->assertInstanceOf(Tool::class, $result);
         $this->assertCount(3, $result->parameters());

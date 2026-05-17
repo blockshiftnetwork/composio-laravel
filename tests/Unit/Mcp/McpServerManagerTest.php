@@ -4,8 +4,9 @@ namespace BlockshiftNetwork\ComposioLaravel\Tests\Unit\Mcp;
 
 use BlockshiftNetwork\Composio\Api\MCPApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PatchMcpByIdRequest;
-use BlockshiftNetwork\Composio\Model\PostMcpServersCustomRequest;
+use BlockshiftNetwork\Composio\Model\PatchV31McpByIdRequest;
+use BlockshiftNetwork\Composio\Model\PostV31McpServersCustomRequest;
+use BlockshiftNetwork\Composio\Model\PostV31McpServersGenerateRequest;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use BlockshiftNetwork\ComposioLaravel\Mcp\McpServerManager;
 use Mockery;
@@ -24,7 +25,7 @@ class McpServerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(MCPApi::class);
-        $api->shouldReceive('getMcpServers')
+        $api->shouldReceive('getV31McpServers')
             ->once()
             ->with('mine', 'github,linear', null, 'updated_at', 'desc', 1, 10)
             ->andReturn($expected);
@@ -38,7 +39,7 @@ class McpServerManagerTest extends TestCase
         $error->shouldReceive('getError')->andReturn('boom');
 
         $api = Mockery::mock(MCPApi::class);
-        $api->shouldReceive('getMcpServers')->once()->andReturn($error);
+        $api->shouldReceive('getV31McpServers')->once()->andReturn($error);
 
         $this->expectException(ComposioException::class);
         $this->expectExceptionMessage('Failed to list MCP servers: boom');
@@ -50,20 +51,31 @@ class McpServerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(MCPApi::class);
-        $api->shouldReceive('getMcpById')->once()->with('srv_1')->andReturn($expected);
+        $api->shouldReceive('getV31McpById')->once()->with('srv_1')->andReturn($expected);
 
         $this->assertSame($expected, (new McpServerManager($api))->get('srv_1'));
     }
 
     public function test_creates_custom_server(): void
     {
-        $request = Mockery::mock(PostMcpServersCustomRequest::class);
+        $request = Mockery::mock(PostV31McpServersCustomRequest::class);
         $expected = new stdClass;
 
         $api = Mockery::mock(MCPApi::class);
-        $api->shouldReceive('postMcpServersCustom')->once()->with($request)->andReturn($expected);
+        $api->shouldReceive('postV31McpServersCustom')->once()->with($request)->andReturn($expected);
 
         $this->assertSame($expected, (new McpServerManager($api))->createCustomServer($request));
+    }
+
+    public function test_generates_server_url(): void
+    {
+        $request = Mockery::mock(PostV31McpServersGenerateRequest::class);
+        $expected = new stdClass;
+
+        $api = Mockery::mock(MCPApi::class);
+        $api->shouldReceive('postV31McpServersGenerate')->once()->with($request)->andReturn($expected);
+
+        $this->assertSame($expected, (new McpServerManager($api))->generate($request));
     }
 
     public function test_throws_when_create_fails(): void
@@ -71,9 +83,9 @@ class McpServerManagerTest extends TestCase
         $error = Mockery::mock(Error::class);
         $error->shouldReceive('getError')->andReturn('bad request');
 
-        $request = Mockery::mock(PostMcpServersCustomRequest::class);
+        $request = Mockery::mock(PostV31McpServersCustomRequest::class);
         $api = Mockery::mock(MCPApi::class);
-        $api->shouldReceive('postMcpServersCustom')->once()->andReturn($error);
+        $api->shouldReceive('postV31McpServersCustom')->once()->andReturn($error);
 
         $this->expectException(ComposioException::class);
         $this->expectExceptionMessage('Failed to create custom MCP server: bad request');
@@ -83,11 +95,11 @@ class McpServerManagerTest extends TestCase
 
     public function test_updates_a_server(): void
     {
-        $request = Mockery::mock(PatchMcpByIdRequest::class);
+        $request = Mockery::mock(PatchV31McpByIdRequest::class);
         $expected = new stdClass;
 
         $api = Mockery::mock(MCPApi::class);
-        $api->shouldReceive('patchMcpById')->once()->with('srv_1', $request)->andReturn($expected);
+        $api->shouldReceive('patchV31McpById')->once()->with('srv_1', $request)->andReturn($expected);
 
         $this->assertSame($expected, (new McpServerManager($api))->update('srv_1', $request));
     }
@@ -96,7 +108,7 @@ class McpServerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(MCPApi::class);
-        $api->shouldReceive('deleteMcpById')->once()->with('srv_1')->andReturn($expected);
+        $api->shouldReceive('deleteV31McpById')->once()->with('srv_1')->andReturn($expected);
 
         $this->assertSame($expected, (new McpServerManager($api))->delete('srv_1'));
     }
@@ -105,7 +117,7 @@ class McpServerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(MCPApi::class);
-        $api->shouldReceive('getMcpServersByServerIdInstances')
+        $api->shouldReceive('getV31McpServersByServerIdInstances')
             ->once()
             ->with('srv_1', 2, 50, 'foo', 'updated_at', 'desc')
             ->andReturn($expected);
@@ -122,7 +134,7 @@ class McpServerManagerTest extends TestCase
         $expected = new stdClass;
 
         $api = Mockery::mock(MCPApi::class);
-        $api->shouldReceive('postMcpServersByServerIdInstances')
+        $api->shouldReceive('postV31McpServersByServerIdInstances')
             ->once()
             ->with('srv_1', $request)
             ->andReturn($expected);
@@ -134,7 +146,7 @@ class McpServerManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(MCPApi::class);
-        $api->shouldReceive('deleteMcpServersByServerIdInstancesByInstanceId')
+        $api->shouldReceive('deleteV31McpServersByServerIdInstancesByInstanceId')
             ->once()
             ->with('srv_1', 'inst_1')
             ->andReturn($expected);

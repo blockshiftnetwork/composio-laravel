@@ -4,11 +4,11 @@ namespace BlockshiftNetwork\ComposioLaravel\Execution;
 
 use BlockshiftNetwork\Composio\Api\ToolsApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PostToolsExecuteByToolSlugRequest;
+use BlockshiftNetwork\Composio\Model\PostV31ToolsExecuteByToolSlugRequest;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ToolExecutionException;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
 
-class ToolExecutor
+class ToolExecutor implements ToolExecutorInterface
 {
     public function __construct(
         private readonly ToolsApi $toolsApi,
@@ -17,29 +17,29 @@ class ToolExecutor
 
     public function execute(
         string $toolSlug,
-        array $arguments,
+        array $arguments = [],
         ?string $userId = null,
-        ?string $entityId = null,
         ?string $connectedAccountId = null,
+        ?string $version = null,
     ): ExecutionResult {
         $arguments = $this->hooks->runBefore($toolSlug, $arguments);
 
-        $request = new PostToolsExecuteByToolSlugRequest;
-        $request->setArguments($arguments);
+        $request = new PostV31ToolsExecuteByToolSlugRequest;
+        $request->setArguments($this->argumentsPayload($arguments));
 
         if ($userId !== null) {
             $request->setUserId($userId);
-        }
-
-        if ($entityId !== null) {
-            $request->setEntityId($entityId);
         }
 
         if ($connectedAccountId !== null) {
             $request->setConnectedAccountId($connectedAccountId);
         }
 
-        $response = $this->toolsApi->postToolsExecuteByToolSlug($toolSlug, $request);
+        if ($version !== null) {
+            $request->setVersion($version);
+        }
+
+        $response = $this->toolsApi->postV31ToolsExecuteByToolSlug($toolSlug, null, $request);
 
         if ($response instanceof Error) {
             throw new ToolExecutionException(
@@ -50,5 +50,16 @@ class ToolExecutor
         $result = ExecutionResult::fromResponse($response);
 
         return $this->hooks->runAfter($toolSlug, $result);
+    }
+
+    /**
+     * Composio validates arguments as a JSON object. In PHP, an empty array
+     * serializes to [] instead of {}, so send stdClass only for that case.
+     *
+     * @param  array<string, mixed>  $arguments
+     */
+    private function argumentsPayload(array $arguments): array|object
+    {
+        return $arguments === [] ? new \stdClass : $arguments;
     }
 }

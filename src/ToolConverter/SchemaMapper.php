@@ -9,8 +9,9 @@ use Prism\Prism\Tool;
 
 class SchemaMapper
 {
-    public function applySchema(Tool $tool, array $jsonSchema): Tool
+    public function applySchema(Tool $tool, array|object $jsonSchema): Tool
     {
+        $jsonSchema = $this->normalizeSchema($jsonSchema);
         $properties = $jsonSchema['properties'] ?? [];
         $required = $jsonSchema['required'] ?? [];
 
@@ -22,8 +23,9 @@ class SchemaMapper
         return $tool;
     }
 
-    private function applyProperty(Tool $tool, string $name, array $schema, bool $required): Tool
+    private function applyProperty(Tool $tool, string $name, mixed $schema, bool $required): Tool
     {
+        $schema = $this->normalizeSchema($schema);
         $type = $schema['type'] ?? 'string';
         $description = $schema['description'] ?? '';
 
@@ -53,8 +55,9 @@ class SchemaMapper
         };
     }
 
-    private function mapItemsSchema(array $items): StringSchema|NumberSchema|BooleanSchema
+    private function mapItemsSchema(mixed $items): StringSchema|NumberSchema|BooleanSchema
     {
+        $items = $this->normalizeSchema($items);
         $type = $items['type'] ?? 'string';
         $description = $items['description'] ?? 'item';
 
@@ -65,12 +68,14 @@ class SchemaMapper
         };
     }
 
-    private function mapObjectProperties(array $schema): array
+    private function mapObjectProperties(mixed $schema): array
     {
+        $schema = $this->normalizeSchema($schema);
         $properties = [];
         $nestedProps = $schema['properties'] ?? [];
 
         foreach ($nestedProps as $name => $propSchema) {
+            $propSchema = $this->normalizeSchema($propSchema);
             $type = $propSchema['type'] ?? 'string';
             $description = $propSchema['description'] ?? '';
 
@@ -82,5 +87,21 @@ class SchemaMapper
         }
 
         return $properties;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function normalizeSchema(mixed $schema): array
+    {
+        if (is_array($schema)) {
+            return $schema;
+        }
+
+        if ($schema instanceof \stdClass) {
+            return json_decode(json_encode($schema), true) ?: [];
+        }
+
+        return [];
     }
 }

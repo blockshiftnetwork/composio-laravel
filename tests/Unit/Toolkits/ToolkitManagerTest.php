@@ -4,7 +4,7 @@ namespace BlockshiftNetwork\ComposioLaravel\Tests\Unit\Toolkits;
 
 use BlockshiftNetwork\Composio\Api\ToolkitsApi;
 use BlockshiftNetwork\Composio\Model\Error;
-use BlockshiftNetwork\Composio\Model\PostToolkitsMultiRequest;
+use BlockshiftNetwork\Composio\Model\PostV31ToolkitsMultiRequest;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use BlockshiftNetwork\ComposioLaravel\Toolkits\ToolkitManager;
 use Mockery;
@@ -23,13 +23,13 @@ class ToolkitManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(ToolkitsApi::class);
-        $api->shouldReceive('getToolkits')
+        $api->shouldReceive('getV31Toolkits')
             ->once()
-            ->with('productivity', null, false, 'usage', 20, 'abc')
+            ->with('productivity', null, 'usage', false, null, 20, 'abc')
             ->andReturn($expected);
 
         $manager = new ToolkitManager($api);
-        $result = $manager->list(category: 'productivity', isLocal: false, sortBy: 'usage', limit: 20, cursor: 'abc');
+        $result = $manager->list(category: 'productivity', includeDeprecated: false, sortBy: 'usage', limit: 20, cursor: 'abc');
 
         $this->assertSame($expected, $result);
     }
@@ -40,7 +40,7 @@ class ToolkitManagerTest extends TestCase
         $error->shouldReceive('getError')->andReturn('boom');
 
         $api = Mockery::mock(ToolkitsApi::class);
-        $api->shouldReceive('getToolkits')->once()->andReturn($error);
+        $api->shouldReceive('getV31Toolkits')->once()->andReturn($error);
 
         $this->expectException(ComposioException::class);
         $this->expectExceptionMessage('Failed to list toolkits: boom');
@@ -52,7 +52,7 @@ class ToolkitManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(ToolkitsApi::class);
-        $api->shouldReceive('getToolkitsBySlug')
+        $api->shouldReceive('getV31ToolkitsBySlug')
             ->once()
             ->with('github', 'latest')
             ->andReturn($expected);
@@ -66,7 +66,7 @@ class ToolkitManagerTest extends TestCase
         $error->shouldReceive('getError')->andReturn('not found');
 
         $api = Mockery::mock(ToolkitsApi::class);
-        $api->shouldReceive('getToolkitsBySlug')->once()->andReturn($error);
+        $api->shouldReceive('getV31ToolkitsBySlug')->once()->andReturn($error);
 
         $this->expectException(ComposioException::class);
         $this->expectExceptionMessage("Failed to get toolkit 'github': not found");
@@ -78,27 +78,27 @@ class ToolkitManagerTest extends TestCase
     {
         $expected = new stdClass;
         $api = Mockery::mock(ToolkitsApi::class);
-        $api->shouldReceive('getToolkitsCategories')->once()->with('1')->andReturn($expected);
+        $api->shouldReceive('getV31ToolkitsCategories')->once()->andReturn($expected);
 
-        $this->assertSame($expected, (new ToolkitManager($api))->categories(cache: '1'));
+        $this->assertSame($expected, (new ToolkitManager($api))->categories());
     }
 
     public function test_returns_changelog(): void
     {
         $expected = new stdClass;
         $api = Mockery::mock(ToolkitsApi::class);
-        $api->shouldReceive('getToolkitsChangelog')->once()->andReturn($expected);
+        $api->shouldReceive('getV31ToolkitsChangelog')->once()->andReturn($expected);
 
         $this->assertSame($expected, (new ToolkitManager($api))->changelog());
     }
 
     public function test_fetches_multiple_toolkits(): void
     {
-        $request = Mockery::mock(PostToolkitsMultiRequest::class);
+        $request = Mockery::mock(PostV31ToolkitsMultiRequest::class);
         $expected = new stdClass;
 
         $api = Mockery::mock(ToolkitsApi::class);
-        $api->shouldReceive('postToolkitsMulti')->once()->with($request)->andReturn($expected);
+        $api->shouldReceive('postV31ToolkitsMulti')->once()->with($request)->andReturn($expected);
 
         $this->assertSame($expected, (new ToolkitManager($api))->fetchMultiple($request));
     }

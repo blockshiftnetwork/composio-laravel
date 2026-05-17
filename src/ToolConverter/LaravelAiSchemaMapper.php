@@ -6,8 +6,9 @@ use Illuminate\Contracts\JsonSchema\JsonSchema;
 
 class LaravelAiSchemaMapper
 {
-    public function mapProperties(JsonSchema $schema, array $jsonSchema): array
+    public function mapProperties(JsonSchema $schema, array|object $jsonSchema): array
     {
+        $jsonSchema = $this->normalizeSchema($jsonSchema);
         $properties = $jsonSchema['properties'] ?? [];
         $required = $jsonSchema['required'] ?? [];
         $mapped = [];
@@ -20,8 +21,9 @@ class LaravelAiSchemaMapper
         return $mapped;
     }
 
-    private function mapProperty(JsonSchema $schema, array $propertySchema, bool $required): mixed
+    private function mapProperty(JsonSchema $schema, mixed $propertySchema, bool $required): mixed
     {
+        $propertySchema = $this->normalizeSchema($propertySchema);
         $type = $propertySchema['type'] ?? 'string';
         $description = $propertySchema['description'] ?? '';
 
@@ -49,8 +51,9 @@ class LaravelAiSchemaMapper
         return $typeInstance;
     }
 
-    private function mapObjectType(JsonSchema $schema, array $propertySchema): mixed
+    private function mapObjectType(JsonSchema $schema, mixed $propertySchema): mixed
     {
+        $propertySchema = $this->normalizeSchema($propertySchema);
         $nestedProperties = $propertySchema['properties'] ?? [];
         $nestedRequired = $propertySchema['required'] ?? [];
 
@@ -65,5 +68,21 @@ class LaravelAiSchemaMapper
         }
 
         return $schema->object($mapped);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function normalizeSchema(mixed $schema): array
+    {
+        if (is_array($schema)) {
+            return $schema;
+        }
+
+        if ($schema instanceof \stdClass) {
+            return json_decode(json_encode($schema), true) ?: [];
+        }
+
+        return [];
     }
 }
