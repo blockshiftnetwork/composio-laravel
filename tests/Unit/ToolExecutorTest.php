@@ -58,7 +58,7 @@ class ToolExecutorTest extends TestCase
         $this->expectException(ToolExecutionException::class);
         $this->expectExceptionMessage("Tool execution failed for 'GITHUB_CREATE_ISSUE'");
 
-        $executor->execute('GITHUB_CREATE_ISSUE', ['title' => 'Test']);
+        $executor->execute('GITHUB_CREATE_ISSUE', ['title' => 'Test'], 'user_123');
     }
 
     public function test_runs_before_hooks(): void
@@ -85,7 +85,7 @@ class ToolExecutorTest extends TestCase
         });
 
         $executor = new ToolExecutor($toolsApi, $hookManager);
-        $result = $executor->execute('GITHUB_CREATE_ISSUE', ['title' => 'Test']);
+        $result = $executor->execute('GITHUB_CREATE_ISSUE', ['title' => 'Test'], 'user_123');
 
         $this->assertTrue($result->isSuccessful());
     }
@@ -109,7 +109,7 @@ class ToolExecutorTest extends TestCase
 
         $executor = new ToolExecutor($toolsApi, new HookManager);
 
-        $this->assertTrue($executor->execute('HACKERNEWS_GET_FRONTPAGE')->isSuccessful());
+        $this->assertTrue($executor->execute('HACKERNEWS_GET_FRONTPAGE', [], 'user_123')->isSuccessful());
     }
 
     public function test_runs_after_hooks(): void
@@ -134,7 +134,7 @@ class ToolExecutorTest extends TestCase
         });
 
         $executor = new ToolExecutor($toolsApi, $hookManager);
-        $executor->execute('GITHUB_CREATE_ISSUE', ['title' => 'Test']);
+        $executor->execute('GITHUB_CREATE_ISSUE', ['title' => 'Test'], 'user_123');
 
         $this->assertTrue($hookCalled);
     }
@@ -160,8 +160,8 @@ class ToolExecutorTest extends TestCase
         });
 
         $executor = new ToolExecutor($toolsApi, $hookManager);
-        $executor->execute('GITHUB_CREATE_ISSUE', []);
-        $executor->execute('SLACK_SEND_MESSAGE', []);
+        $executor->execute('GITHUB_CREATE_ISSUE', [], 'user_123');
+        $executor->execute('SLACK_SEND_MESSAGE', [], 'user_123');
 
         $this->assertEquals(['GITHUB_CREATE_ISSUE', 'SLACK_SEND_MESSAGE'], $toolsExecuted);
     }

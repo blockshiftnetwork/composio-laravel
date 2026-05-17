@@ -27,7 +27,6 @@ class ComposioServiceProviderTest extends TestCase
     {
         $app['config']->set('services.composio.api_key', 'test-api-key');
         $app['config']->set('services.composio.base_url', 'https://test.composio.dev');
-        $app['config']->set('services.composio.default_user_id', 'test-user');
     }
 
     public function test_registers_configuration_singleton(): void
@@ -52,13 +51,23 @@ class ComposioServiceProviderTest extends TestCase
         $toolManager = $this->app->make(ToolManager::class);
 
         $this->assertInstanceOf(ToolManager::class, $toolManager);
+        $this->assertNull($this->readToolManagerUserId($toolManager));
+    }
+
+    public function test_tool_manager_binding_ignores_legacy_default_user_id_config(): void
+    {
+        config(['services.composio.default_user_id' => 'legacy-global-user']);
+
+        $toolManager = $this->app->make(ToolManager::class);
+
+        $this->assertNull($this->readToolManagerUserId($toolManager));
     }
 
     public function test_config_is_merged(): void
     {
         $this->assertEquals('test-api-key', config('services.composio.api_key'));
         $this->assertEquals('https://test.composio.dev', config('services.composio.base_url'));
-        $this->assertEquals('test-user', config('services.composio.default_user_id'));
+        $this->assertNull(config('services.composio.default_user_id'));
     }
 
     public function test_facade_resolves_managers(): void
@@ -93,5 +102,12 @@ class ComposioServiceProviderTest extends TestCase
 
         $this->assertNotNull($registry);
         $this->assertTrue($registry->has('LOCAL_PING'));
+    }
+
+    private function readToolManagerUserId(ToolManager $toolManager): ?string
+    {
+        $property = new \ReflectionProperty($toolManager, 'userId');
+
+        return $property->getValue($toolManager);
     }
 }

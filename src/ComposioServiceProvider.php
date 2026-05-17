@@ -16,7 +16,6 @@ class ComposioServiceProvider extends ServiceProvider
         $this->app['config']->set('services.composio', array_merge([
             'api_key' => env('COMPOSIO_API_KEY'),
             'base_url' => env('COMPOSIO_BASE_URL', 'https://backend.composio.dev'),
-            'default_user_id' => env('COMPOSIO_DEFAULT_USER_ID'),
         ], $this->app['config']->get('services.composio', [])));
 
         $this->app->singleton(Configuration::class, fn () => Configuration::getDefaultConfiguration()
@@ -30,9 +29,7 @@ class ComposioServiceProvider extends ServiceProvider
                 : new Client,
         ));
 
-        $this->app->bind(ToolManager::class, fn ($app) => $app->make(ComposioManager::class)->tools(
-            config('services.composio.default_user_id'),
-        ));
+        $this->app->bind(ToolManager::class, fn ($app) => $app->make(ComposioManager::class)->tools());
     }
 
     public function boot(): void
