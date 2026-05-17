@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\CodeQuality\Rector\Identical\FlipTypeControlToUseExclusiveTypeRector;
 use Rector\Config\RectorConfig;
+use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 use Rector\Set\ValueObject\SetList;
 
 return RectorConfig::configure()
@@ -18,4 +19,9 @@ return RectorConfig::configure()
     ])
     ->withSkip([
         FlipTypeControlToUseExclusiveTypeRector::class,
+        StringClassNameToClassConstantRector::class => [
+            __DIR__.'/src/Session/ComposioSession.php',
+            __DIR__.'/src/Support/OptionalDependencyChecker.php',
+            __DIR__.'/src/Tools/ToolManager.php',
+        ],
     ]);

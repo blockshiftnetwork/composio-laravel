@@ -10,10 +10,6 @@ use BlockshiftNetwork\Composio\Model\Tool as ComposioToolModel;
 use BlockshiftNetwork\Composio\Model\ToolsPaginated;
 use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutor;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiSchemaMapper;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiToolConverter;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\PrismToolConverter;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\SchemaMapper;
 use BlockshiftNetwork\ComposioLaravel\Tools\ToolManager;
 use Mockery;
 use PHPUnit\Framework\TestCase;
@@ -85,8 +81,6 @@ class ToolManagerTest extends TestCase
 
         return new ToolManager(
             toolsApi: $toolsApi,
-            prismConverterFactory: fn ($executor) => new PrismToolConverter(new SchemaMapper, $executor),
-            laravelAiConverterFactory: fn ($executor) => new LaravelAiToolConverter(new LaravelAiSchemaMapper, $executor),
             executor: $executor,
             hooks: $hooks,
         );

@@ -13,38 +13,38 @@ use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use BlockshiftNetwork\ComposioLaravel\Execution\ExecutionResult;
 use BlockshiftNetwork\ComposioLaravel\Execution\ScopedToolExecutor;
 use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutor;
-use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutorInterface;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
-use BlockshiftNetwork\ComposioLaravel\LaravelAi\CustomLaravelAiTool;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiSchemaMapper;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiToolConverter;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\PrismToolConverter;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\SchemaMapper;
-use Laravel\Ai\Contracts\Tool;
-use Prism\Prism\Tool as PrismTool;
+use BlockshiftNetwork\ComposioLaravel\Support\OptionalDependencyChecker;
 
 class ToolManager
 {
-    /**
-     * @param  callable(ToolExecutorInterface): PrismToolConverter|null  $prismConverterFactory
-     * @param  callable(ToolExecutorInterface): LaravelAiToolConverter|null  $laravelAiConverterFactory
-     */
+    private const string PRISM_CONVERTER_CLASS = 'BlockshiftNetwork\\ComposioLaravel\\ToolConverter\\PrismToolConverter';
+
+    private const string PRISM_SCHEMA_MAPPER_CLASS = 'BlockshiftNetwork\\ComposioLaravel\\ToolConverter\\SchemaMapper';
+
+    private const string LARAVEL_AI_CONVERTER_CLASS = 'BlockshiftNetwork\\ComposioLaravel\\ToolConverter\\LaravelAiToolConverter';
+
+    private const string LARAVEL_AI_SCHEMA_MAPPER_CLASS = 'BlockshiftNetwork\\ComposioLaravel\\ToolConverter\\LaravelAiSchemaMapper';
+
+    private const string CUSTOM_LARAVEL_AI_TOOL_CLASS = 'BlockshiftNetwork\\ComposioLaravel\\LaravelAi\\CustomLaravelAiTool';
+
+    private readonly OptionalDependencyChecker $optionalDependencies;
+
     public function __construct(
         private readonly ToolsApi $toolsApi,
-        private readonly mixed $prismConverterFactory,
-        private readonly mixed $laravelAiConverterFactory,
         private readonly ToolExecutor $executor,
         private readonly HookManager $hooks,
         private readonly ?CustomToolRegistry $customTools = null,
-        private readonly ?SchemaMapper $schemaMapper = null,
-        private readonly ?LaravelAiSchemaMapper $laravelAiSchemaMapper = null,
+        ?OptionalDependencyChecker $optionalDependencies = null,
         private readonly ?string $userId = null,
         private readonly ?string $connectedAccountId = null,
         private readonly ?string $version = null,
-    ) {}
+    ) {
+        $this->optionalDependencies = $optionalDependencies ?? new OptionalDependencyChecker;
+    }
 
     /**
-     * @return PrismTool[]
+     * @return array<int, mixed>
      */
     public function get(
         ?string $toolkitSlug = null,
@@ -79,8 +79,10 @@ class ToolManager
         return array_merge($remote, $this->customPrismTools());
     }
 
-    public function getTool(string $toolSlug): PrismTool
+    public function getTool(string $toolSlug): mixed
     {
+        $converter = $this->prismConverter();
+
         if ($this->customTools !== null && $this->customTools->has($toolSlug)) {
             return $this->customToPrism($this->customTools->get($toolSlug));
         }
@@ -91,11 +93,11 @@ class ToolManager
             throw new ComposioException("Failed to fetch tool '{$toolSlug}': ".$response->getError());
         }
 
-        return $this->prismConverter()->convert($response);
+        return $converter->convert($response);
     }
 
     /**
-     * @return Tool[]
+     * @return array<int, mixed>
      */
     public function getLaravelAiTools(
         ?string $toolkitSlug = null,
@@ -132,6 +134,8 @@ class ToolManager
 
     public function getLaravelAiTool(string $toolSlug): mixed
     {
+        $converter = $this->laravelAiConverter();
+
         if ($this->customTools !== null && $this->customTools->has($toolSlug)) {
             return $this->customToLaravelAi($this->customTools->get($toolSlug));
         }
@@ -142,7 +146,7 @@ class ToolManager
             throw new ComposioException("Failed to fetch tool '{$toolSlug}': ".$response->getError());
         }
 
-        return $this->laravelAiConverter()->convert($response);
+        return $converter->convert($response);
     }
 
     /**
@@ -167,13 +171,10 @@ class ToolManager
     {
         return new self(
             toolsApi: $this->toolsApi,
-            prismConverterFactory: $this->prismConverterFactory,
-            laravelAiConverterFactory: $this->laravelAiConverterFactory,
             executor: $this->executor,
             hooks: $this->hooks,
             customTools: $this->customTools,
-            schemaMapper: $this->schemaMapper,
-            laravelAiSchemaMapper: $this->laravelAiSchemaMapper,
+            optionalDependencies: $this->optionalDependencies,
             userId: $userId,
             connectedAccountId: $this->connectedAccountId,
             version: $this->version,
@@ -184,13 +185,10 @@ class ToolManager
     {
         return new self(
             toolsApi: $this->toolsApi,
-            prismConverterFactory: $this->prismConverterFactory,
-            laravelAiConverterFactory: $this->laravelAiConverterFactory,
             executor: $this->executor,
             hooks: $this->hooks,
             customTools: $this->customTools,
-            schemaMapper: $this->schemaMapper,
-            laravelAiSchemaMapper: $this->laravelAiSchemaMapper,
+            optionalDependencies: $this->optionalDependencies,
             userId: $this->userId,
             connectedAccountId: $connectedAccountId,
             version: $this->version,
@@ -201,13 +199,10 @@ class ToolManager
     {
         return new self(
             toolsApi: $this->toolsApi,
-            prismConverterFactory: $this->prismConverterFactory,
-            laravelAiConverterFactory: $this->laravelAiConverterFactory,
             executor: $this->executor,
             hooks: $this->hooks,
             customTools: $this->customTools,
-            schemaMapper: $this->schemaMapper,
-            laravelAiSchemaMapper: $this->laravelAiSchemaMapper,
+            optionalDependencies: $this->optionalDependencies,
             userId: $this->userId,
             connectedAccountId: $this->connectedAccountId,
             version: $version,
@@ -327,30 +322,28 @@ class ToolManager
         );
     }
 
-    private function prismConverter(): PrismToolConverter
+    private function prismConverter(): mixed
     {
-        if ($this->prismConverterFactory === null) {
-            throw new ComposioException(
-                'PrismPHP is not available. Install it with: composer require prism-php/prism'
-            );
-        }
+        $this->ensurePrismAvailable();
 
-        return ($this->prismConverterFactory)($this->scopedExecutor());
+        $converterClass = self::PRISM_CONVERTER_CLASS;
+        $schemaMapperClass = self::PRISM_SCHEMA_MAPPER_CLASS;
+
+        return new $converterClass(new $schemaMapperClass, $this->scopedExecutor());
     }
 
-    private function laravelAiConverter(): LaravelAiToolConverter
+    private function laravelAiConverter(): mixed
     {
-        if ($this->laravelAiConverterFactory === null) {
-            throw new ComposioException(
-                'Laravel AI is not available. Install it with: composer require laravel/ai'
-            );
-        }
+        $this->ensureLaravelAiAvailable();
 
-        return ($this->laravelAiConverterFactory)($this->scopedExecutor());
+        $converterClass = self::LARAVEL_AI_CONVERTER_CLASS;
+        $schemaMapperClass = self::LARAVEL_AI_SCHEMA_MAPPER_CLASS;
+
+        return new $converterClass(new $schemaMapperClass, $this->scopedExecutor());
     }
 
     /**
-     * @return PrismTool[]
+     * @return array<int, mixed>
      */
     private function customPrismTools(): array
     {
@@ -362,7 +355,7 @@ class ToolManager
     }
 
     /**
-     * @return Tool[]
+     * @return array<int, mixed>
      */
     private function customLaravelAiTools(): array
     {
@@ -373,16 +366,15 @@ class ToolManager
         return array_map($this->customToLaravelAi(...), $this->customTools->all());
     }
 
-    private function customToPrism(CustomTool $custom): PrismTool
+    private function customToPrism(CustomTool $custom): mixed
     {
-        if ($this->schemaMapper === null) {
-            throw new ComposioException('SchemaMapper is required to expose custom tools to PrismPHP.');
-        }
+        $this->ensurePrismAvailable();
 
-        $tool = (new PrismTool)->as($custom->slug)->for($custom->description);
+        $toolClass = OptionalDependencyChecker::PRISM_TOOL_CLASS;
+        $tool = (new $toolClass)->as($custom->slug)->for($custom->description);
 
         if ($custom->inputSchema !== []) {
-            $tool = $this->schemaMapper->applySchema($tool, $custom->inputSchema);
+            $tool = $this->prismSchemaMapper()->applySchema($tool, $custom->inputSchema);
         }
 
         return $tool->using(function () use ($custom): string {
@@ -393,13 +385,45 @@ class ToolManager
         });
     }
 
-    private function customToLaravelAi(CustomTool $custom): CustomLaravelAiTool
+    private function customToLaravelAi(CustomTool $custom): mixed
     {
-        if ($this->laravelAiSchemaMapper === null) {
-            throw new ComposioException('LaravelAiSchemaMapper is required to expose custom tools to Laravel AI.');
-        }
+        $this->ensureLaravelAiAvailable();
 
-        return new CustomLaravelAiTool($custom, $this->laravelAiSchemaMapper);
+        $customToolClass = self::CUSTOM_LARAVEL_AI_TOOL_CLASS;
+
+        return new $customToolClass($custom, $this->laravelAiSchemaMapper());
+    }
+
+    private function prismSchemaMapper(): mixed
+    {
+        $schemaMapperClass = self::PRISM_SCHEMA_MAPPER_CLASS;
+
+        return new $schemaMapperClass;
+    }
+
+    private function laravelAiSchemaMapper(): mixed
+    {
+        $schemaMapperClass = self::LARAVEL_AI_SCHEMA_MAPPER_CLASS;
+
+        return new $schemaMapperClass;
+    }
+
+    private function ensurePrismAvailable(): void
+    {
+        if (! $this->optionalDependencies->prismAvailable()) {
+            throw new ComposioException(
+                'PrismPHP is not available. Install it with: composer require prism-php/prism'
+            );
+        }
+    }
+
+    private function ensureLaravelAiAvailable(): void
+    {
+        if (! $this->optionalDependencies->laravelAiAvailable()) {
+            throw new ComposioException(
+                'Laravel AI is not available. Install it with: composer require laravel/ai'
+            );
+        }
     }
 
     /**
