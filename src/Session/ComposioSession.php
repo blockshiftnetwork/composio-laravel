@@ -12,13 +12,20 @@ use BlockshiftNetwork\Composio\Model\Tool as ComposioToolModel;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use BlockshiftNetwork\ComposioLaravel\Execution\ExecutionResult;
 use BlockshiftNetwork\ComposioLaravel\Execution\SessionToolExecutor;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiToolConverter;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\PrismToolConverter;
-use Laravel\Ai\Contracts\Tool;
-use Prism\Prism\Tool as PrismTool;
+use BlockshiftNetwork\ComposioLaravel\Support\OptionalDependencyChecker;
 
 class ComposioSession
 {
+    private const string PRISM_CONVERTER_CLASS = 'BlockshiftNetwork\\ComposioLaravel\\ToolConverter\\PrismToolConverter';
+
+    private const string PRISM_SCHEMA_MAPPER_CLASS = 'BlockshiftNetwork\\ComposioLaravel\\ToolConverter\\SchemaMapper';
+
+    private const string LARAVEL_AI_CONVERTER_CLASS = 'BlockshiftNetwork\\ComposioLaravel\\ToolConverter\\LaravelAiToolConverter';
+
+    private const string LARAVEL_AI_SCHEMA_MAPPER_CLASS = 'BlockshiftNetwork\\ComposioLaravel\\ToolConverter\\LaravelAiSchemaMapper';
+
+    private readonly OptionalDependencyChecker $optionalDependencies;
+
     /**
      * @param  array<string, mixed>  $mcp
      * @param  array<int, string>  $toolSlugs
@@ -28,18 +35,19 @@ class ComposioSession
         private readonly ToolRouterApi $toolRouterApi,
         private readonly ToolsApi $toolsApi,
         private readonly SessionToolExecutor $executor,
-        private readonly ?PrismToolConverter $prismConverter,
-        private readonly ?LaravelAiToolConverter $laravelAiConverter,
         public readonly string $sessionId,
         public readonly array $mcp = [],
         private readonly array $toolSlugs = [],
         public readonly mixed $preload = null,
         public readonly ?int $configVersion = null,
         public readonly array $warnings = [],
-    ) {}
+        ?OptionalDependencyChecker $optionalDependencies = null,
+    ) {
+        $this->optionalDependencies = $optionalDependencies ?? new OptionalDependencyChecker;
+    }
 
     /**
-     * @return PrismTool[]
+     * @return array<int, mixed>
      */
     public function tools(
         ?string $toolkitSlug = null,
@@ -47,17 +55,17 @@ class ComposioSession
         ?array $tags = null,
         ?string $search = null,
     ): array {
-        $this->ensurePrismAvailable();
+        $converter = $this->prismConverter();
 
         return array_map(
-            fn (ComposioToolModel $tool): PrismTool => $this->prismConverter->convert($tool),
+            fn (ComposioToolModel $tool): mixed => $converter->convert($tool),
             $this->fetchTools($toolkitSlug, $toolSlugs ?? $this->toolSlugs, $tags, $search),
         );
     }
 
-    public function tool(string $toolSlug): PrismTool
+    public function tool(string $toolSlug): mixed
     {
-        $this->ensurePrismAvailable();
+        $converter = $this->prismConverter();
 
         $response = $this->toolsApi->getV31ToolsByToolSlug($toolSlug);
 
@@ -65,11 +73,11 @@ class ComposioSession
             throw new ComposioException("Failed to fetch tool '{$toolSlug}': ".$response->getError());
         }
 
-        return $this->prismConverter->convert($response);
+        return $converter->convert($response);
     }
 
     /**
-     * @return Tool[]
+     * @return array<int, mixed>
      */
     public function laravelAiTools(
         ?string $toolkitSlug = null,
@@ -77,17 +85,17 @@ class ComposioSession
         ?array $tags = null,
         ?string $search = null,
     ): array {
-        $this->ensureLaravelAiAvailable();
+        $converter = $this->laravelAiConverter();
 
         return array_map(
-            fn (ComposioToolModel $tool): mixed => $this->laravelAiConverter->convert($tool),
+            fn (ComposioToolModel $tool): mixed => $converter->convert($tool),
             $this->fetchTools($toolkitSlug, $toolSlugs ?? $this->toolSlugs, $tags, $search),
         );
     }
 
     public function laravelAiTool(string $toolSlug): mixed
     {
-        $this->ensureLaravelAiAvailable();
+        $converter = $this->laravelAiConverter();
 
         $response = $this->toolsApi->getV31ToolsByToolSlug($toolSlug);
 
@@ -95,7 +103,7 @@ class ComposioSession
             throw new ComposioException("Failed to fetch tool '{$toolSlug}': ".$response->getError());
         }
 
-        return $this->laravelAiConverter->convert($response);
+        return $converter->convert($response);
     }
 
     /**
@@ -202,7 +210,7 @@ class ComposioSession
 
     private function ensurePrismAvailable(): void
     {
-        if ($this->prismConverter === null) {
+        if (! $this->optionalDependencies->prismAvailable()) {
             throw new ComposioException(
                 'PrismPHP is not available. Install it with: composer require prism-php/prism'
             );
@@ -211,10 +219,30 @@ class ComposioSession
 
     private function ensureLaravelAiAvailable(): void
     {
-        if ($this->laravelAiConverter === null) {
+        if (! $this->optionalDependencies->laravelAiAvailable()) {
             throw new ComposioException(
                 'Laravel AI is not available. Install it with: composer require laravel/ai'
             );
         }
+    }
+
+    private function prismConverter(): mixed
+    {
+        $this->ensurePrismAvailable();
+
+        $converterClass = self::PRISM_CONVERTER_CLASS;
+        $schemaMapperClass = self::PRISM_SCHEMA_MAPPER_CLASS;
+
+        return new $converterClass(new $schemaMapperClass, $this->executor);
+    }
+
+    private function laravelAiConverter(): mixed
+    {
+        $this->ensureLaravelAiAvailable();
+
+        $converterClass = self::LARAVEL_AI_CONVERTER_CLASS;
+        $schemaMapperClass = self::LARAVEL_AI_SCHEMA_MAPPER_CLASS;
+
+        return new $converterClass(new $schemaMapperClass, $this->executor);
     }
 }

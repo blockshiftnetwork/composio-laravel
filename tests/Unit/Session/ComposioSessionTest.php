@@ -14,10 +14,6 @@ use BlockshiftNetwork\Composio\Model\ToolsPaginated;
 use BlockshiftNetwork\ComposioLaravel\Execution\SessionToolExecutor;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
 use BlockshiftNetwork\ComposioLaravel\Session\ComposioSession;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiSchemaMapper;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiToolConverter;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\PrismToolConverter;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\SchemaMapper;
 use Laravel\Ai\Contracts\Tool as LaravelAiToolContract;
 use Mockery;
 use PHPUnit\Framework\TestCase;
@@ -152,8 +148,6 @@ class ComposioSessionTest extends TestCase
             toolRouterApi: $routerApi,
             toolsApi: $toolsApi,
             executor: $executor,
-            prismConverter: new PrismToolConverter(new SchemaMapper, $executor),
-            laravelAiConverter: new LaravelAiToolConverter(new LaravelAiSchemaMapper, $executor),
             sessionId: 'session_123',
             mcp: ['type' => 'http', 'url' => 'https://mcp.composio.dev/session_123'],
             toolSlugs: ['GITHUB_CREATE_ISSUE'],

@@ -17,6 +17,13 @@ Legacy `toolSet()` and `entityId` APIs are intentionally not part of the v1 surf
 composer require blockshiftnetwork/composio-laravel
 ```
 
+PrismPHP and Laravel AI are optional. Install only the adapter you use:
+
+```bash
+composer require prism-php/prism
+composer require laravel/ai
+```
+
 ```env
 COMPOSIO_API_KEY=your-api-key
 COMPOSIO_BASE_URL=https://backend.composio.dev
