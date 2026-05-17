@@ -27,7 +27,6 @@ composer require laravel/ai
 ```env
 COMPOSIO_API_KEY=your-api-key
 COMPOSIO_BASE_URL=https://backend.composio.dev
-COMPOSIO_DEFAULT_USER_ID=user_123
 ```
 
 ## Create A Tool Router Session
