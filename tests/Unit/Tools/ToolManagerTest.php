@@ -8,6 +8,7 @@ use BlockshiftNetwork\Composio\Api\ToolsApi;
 use BlockshiftNetwork\Composio\Model\PostV31ToolsExecuteByToolSlug200Response;
 use BlockshiftNetwork\Composio\Model\Tool as ComposioToolModel;
 use BlockshiftNetwork\Composio\Model\ToolsPaginated;
+use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutor;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
 use BlockshiftNetwork\ComposioLaravel\Tools\ToolManager;
@@ -72,6 +73,21 @@ class ToolManagerTest extends TestCase
 
         $this->assertTrue($result->isSuccessful());
         $this->assertSame(['ok' => true], $result->data());
+    }
+
+    public function test_remote_direct_tool_execution_requires_user_id(): void
+    {
+        $toolsApi = Mockery::mock(ToolsApi::class);
+        $toolsApi->shouldNotReceive('postV31ToolsExecuteByToolSlug');
+
+        $manager = $this->makeManager($toolsApi);
+
+        $this->expectException(ComposioException::class);
+        $this->expectExceptionMessage(
+            'A Composio user ID is required. Call Composio::tools($userId) or $toolManager->forUser($userId).'
+        );
+
+        $manager->execute('GITHUB_CREATE_ISSUE', ['title' => 'Test']);
     }
 
     private function makeManager(ToolsApi $toolsApi): ToolManager

@@ -5,6 +5,7 @@ namespace BlockshiftNetwork\ComposioLaravel\Execution;
 use BlockshiftNetwork\Composio\Api\ToolsApi;
 use BlockshiftNetwork\Composio\Model\Error;
 use BlockshiftNetwork\Composio\Model\PostV31ToolsExecuteByToolSlugRequest;
+use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ToolExecutionException;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
 
@@ -22,14 +23,18 @@ class ToolExecutor implements ToolExecutorInterface
         ?string $connectedAccountId = null,
         ?string $version = null,
     ): ExecutionResult {
+        if ($userId === null) {
+            throw new ComposioException(
+                'A Composio user ID is required. Call Composio::tools($userId) or $toolManager->forUser($userId).'
+            );
+        }
+
         $arguments = $this->hooks->runBefore($toolSlug, $arguments);
 
         $request = new PostV31ToolsExecuteByToolSlugRequest;
         $request->setArguments($this->argumentsPayload($arguments));
 
-        if ($userId !== null) {
-            $request->setUserId($userId);
-        }
+        $request->setUserId($userId);
 
         if ($connectedAccountId !== null) {
             $request->setConnectedAccountId($connectedAccountId);
