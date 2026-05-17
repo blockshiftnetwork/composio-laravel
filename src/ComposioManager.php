@@ -17,22 +17,17 @@ use BlockshiftNetwork\ComposioLaravel\Auth\ConnectedAccountManager;
 use BlockshiftNetwork\ComposioLaravel\Exceptions\ComposioException;
 use BlockshiftNetwork\ComposioLaravel\Execution\SessionToolExecutor;
 use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutor;
-use BlockshiftNetwork\ComposioLaravel\Execution\ToolExecutorInterface;
 use BlockshiftNetwork\ComposioLaravel\Files\FileManager;
 use BlockshiftNetwork\ComposioLaravel\Hooks\HookManager;
 use BlockshiftNetwork\ComposioLaravel\Mcp\McpServerManager;
 use BlockshiftNetwork\ComposioLaravel\Session\ComposioSession;
 use BlockshiftNetwork\ComposioLaravel\Session\SessionConfig;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiSchemaMapper;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\LaravelAiToolConverter;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\PrismToolConverter;
-use BlockshiftNetwork\ComposioLaravel\ToolConverter\SchemaMapper;
+use BlockshiftNetwork\ComposioLaravel\Support\OptionalDependencyChecker;
 use BlockshiftNetwork\ComposioLaravel\Toolkits\ToolkitManager;
 use BlockshiftNetwork\ComposioLaravel\Tools\CustomToolRegistry;
 use BlockshiftNetwork\ComposioLaravel\Tools\ToolManager;
 use BlockshiftNetwork\ComposioLaravel\Triggers\TriggerManager;
 use GuzzleHttp\ClientInterface;
-use Prism\Prism\Tool;
 
 class ComposioManager
 {
@@ -52,10 +47,15 @@ class ComposioManager
 
     private ?ToolManager $toolManager = null;
 
+    private readonly OptionalDependencyChecker $optionalDependencies;
+
     public function __construct(
         private readonly Configuration $config,
         private readonly ClientInterface $httpClient,
-    ) {}
+        ?OptionalDependencyChecker $optionalDependencies = null,
+    ) {
+        $this->optionalDependencies = $optionalDependencies ?? new OptionalDependencyChecker;
+    }
 
     public function create(string $userId, array|SessionConfig $config = []): ComposioSession
     {
@@ -139,30 +139,12 @@ class ComposioManager
         $hooks = new HookManager;
         $executor = new ToolExecutor($toolsApi, $hooks);
 
-        $schemaMapper = class_exists(Tool::class) ? new SchemaMapper : null;
-        $prismFactory = $schemaMapper === null
-            ? null
-            : fn (ToolExecutorInterface $executor): PrismToolConverter => new PrismToolConverter($schemaMapper, $executor);
-
-        $laravelAiSchemaMapper = interface_exists(\Laravel\Ai\Contracts\Tool::class)
-            ? new LaravelAiSchemaMapper
-            : null;
-        $laravelAiFactory = $laravelAiSchemaMapper === null
-            ? null
-            : fn (ToolExecutorInterface $executor): LaravelAiToolConverter => new LaravelAiToolConverter(
-                $laravelAiSchemaMapper,
-                $executor,
-            );
-
         return new ToolManager(
             toolsApi: $toolsApi,
-            prismConverterFactory: $prismFactory,
-            laravelAiConverterFactory: $laravelAiFactory,
             executor: $executor,
             hooks: $hooks,
             customTools: $this->customTools(),
-            schemaMapper: $schemaMapper,
-            laravelAiSchemaMapper: $laravelAiSchemaMapper,
+            optionalDependencies: $this->optionalDependencies,
         );
     }
 
@@ -179,25 +161,17 @@ class ComposioManager
         $hooks = new HookManager;
         $executor = new SessionToolExecutor($toolRouterApi, $hooks, $sessionId);
 
-        $prismConverter = class_exists(Tool::class)
-            ? new PrismToolConverter(new SchemaMapper, $executor)
-            : null;
-        $laravelAiConverter = interface_exists(\Laravel\Ai\Contracts\Tool::class)
-            ? new LaravelAiToolConverter(new LaravelAiSchemaMapper, $executor)
-            : null;
-
         return new ComposioSession(
             toolRouterApi: $toolRouterApi,
             toolsApi: $toolsApi,
             executor: $executor,
-            prismConverter: $prismConverter,
-            laravelAiConverter: $laravelAiConverter,
             sessionId: $sessionId,
             mcp: $mcp,
             toolSlugs: $toolSlugs,
             preload: $preload,
             configVersion: $configVersion,
             warnings: $warnings,
+            optionalDependencies: $this->optionalDependencies,
         );
     }
 
